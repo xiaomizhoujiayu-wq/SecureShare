@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Upload,
@@ -14,6 +14,8 @@ import {
   ChevronUp,
 } from "lucide-react";
 import{uploadAndEncryptFile} from '@/lib/api'
+import { getMyAttributes } from "@/lib/api";
+
 
 interface WizardStep {
   number: number;
@@ -39,12 +41,12 @@ export function EncryptionWizard() {
   const [fileName, setFileName] = useState<string>("");
   const [sharingMode, setSharingMode] = useState<"group" | "private">("group");
   const [selectedAttributes, setSelectedAttributes] = useState<SelectedAttribute[]>([]);
-  const [searchUser, setSearchUser] = useState("");
-  const [foundUser, setFoundUser] = useState<{ uid: string; name: string } | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [expandedStep, setExpandedStep] = useState(1);
   const [IsEncrypting, setIsEncrypting] = useState(false);
-  
+  const [attributes, setAttributes] = useState<Attribute[]>([]);
+  const [targetUid, setTargetUid]= useState<string>("");
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const steps: WizardStep[] = [
     { number: 1, title: "Select File", description: "Choose the file to encrypt" },
@@ -52,13 +54,46 @@ export function EncryptionWizard() {
     { number: 3, title: "Encrypt & Execute", description: "Complete the encryption process" },
   ];
 
-  const availableAttributes: Attribute[] = [
-    { id: "dept-it", name: "IT", category: "Department", approved: true },
-    { id: "dept-finance", name: "Finance", category: "Department", approved: true },
-    { id: "role-manager", name: "Manager", category: "Role", approved: true },
-    { id: "role-executive", name: "Executive", category: "Role", approved: true },
-    { id: "team-security", name: "Security", category: "Team", approved: true },
-  ];
+  // const availableAttributes: Attribute[] = [
+  //   { id: "dept-it", name: "IT", category: "Department", approved: true },
+  //   { id: "dept-finance", name: "Finance", category: "Department", approved: true },
+  //   { id: "role-manager", name: "Manager", category: "Role", approved: true },
+  //   { id: "role-executive", name: "Executive", category: "Role", approved: true },
+  //   { id: "team-security", name: "Security", category: "Team", approved: true },
+  // ];
+
+  useEffect(() => {
+      const fetchIdentity = async () => {
+        try {
+          const data = await getMyAttributes();
+          
+          const rawAttrString = data.attributes || ""; 
+          const attrArray = rawAttrString.trim() ? rawAttrString.split(',') : [];
+  
+  
+          // 2. find attribute
+          const businessAttributes = attrArray.filter((attr: string) => !attr.startsWith("ID:"));
+  
+          const parsedAttributes = businessAttributes.map((attrStr: string, index: number) => {
+            const parts = attrStr.split(':');
+            const category = parts.length > 1 ? parts[0] : "Role";
+            //
+            const value = parts.length > 1 ? parts.slice(1).join(':') : attrStr; 
+            
+            return {
+              category: category,
+              name: value,
+            };
+          });
+  
+          setAttributes(parsedAttributes);
+        } catch (error) {
+          console.error("Failed to load identity data", error);
+        }
+      };
+  
+      fetchIdentity();
+    }, []);
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -71,7 +106,7 @@ export function EncryptionWizard() {
   };
 
   const handleAddAttribute = (attr: Attribute) => {
-    if (!selectedAttributes.find((a) => a.id === attr.id)) {
+    if (!selectedAttributes.find((a) => a.category === attr.category && a.name === attr.name)) {
       setSelectedAttributes([
         ...selectedAttributes,
         { id: attr.id, name: attr.name, category: attr.category },
@@ -79,17 +114,12 @@ export function EncryptionWizard() {
     }
   };
 
-  const handleRemoveAttribute = (attrId: string) => {
-    setSelectedAttributes(selectedAttributes.filter((a) => a.id !== attrId));
-  };
-
-  const handleSearchUser = () => {
-    if (searchUser.trim()) {
-      setFoundUser({
-        uid: `user_${searchUser.toLowerCase().replace(/\s+/g, "_")}`,
-        name: searchUser,
-      });
-    }
+  const handleRemoveAttribute = (categoryToRemove: string, nameToRemove: string) => {
+  setSelectedAttributes(
+      selectedAttributes.filter(
+        (a) => a.category !== categoryToRemove || a.name !== nameToRemove
+      )
+    );
   };
 
   const handleEncrypt = async () => {
@@ -106,8 +136,8 @@ export function EncryptionWizard() {
       return;
     }
     
-    if (sharingMode === "private" && !foundUser) {
-      alert("Please search and select a user");
+    if (sharingMode === "private" && !targetUid) {
+      alert("Please select a user");
       return;
     }
 
@@ -115,7 +145,7 @@ export function EncryptionWizard() {
     if (sharingMode === "group") {
         selectedTags = selectedAttributes.map((a) => `${a.category}:${a.name}`).join(",");
       } else {
-        selectedTags = `ID:${foundUser?.uid}`; 
+        selectedTags = `ID:${targetUid}`; 
       }
     const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     let rawKey = '';
@@ -130,16 +160,16 @@ export function EncryptionWizard() {
         console.log("policy:", selectedTags);
         console.log("key:", base64Key);
         await uploadAndEncryptFile(selectedFile, selectedTags, base64Key);
-        alert("File Encrypted and Uploaded Successfully! ");
+        // trigger success info window
+        setShowSuccessModal(true);
     
         setCurrentStep(1);
         setSelectedFile(null);
         setFileName(""); 
         setSharingMode("group");
         setSelectedAttributes([]);
-        setSearchUser("");
-        setFoundUser(null);
         setExpandedStep(1);
+        setTargetUid("");
 
       } catch (error) {
         console.error("Encryption/Upload failed:", error);
@@ -156,7 +186,7 @@ export function EncryptionWizard() {
       {/* Step Indicator - Mobile Optimized */}
       <div className="flex items-center justify-between mb-6 sm:mb-8 gap-1 sm:gap-2">
         {steps.map((step, idx) => (
-          <div key={step.number} className="flex items-center flex-1 min-w-0">
+          <div key={step.number} className={`flex items-center ${idx < steps.length - 1 ? "flex-1" : ""}`}>
             <button
               onClick={() => {
                 setExpandedStep(step.number);
@@ -333,18 +363,18 @@ export function EncryptionWizard() {
                   <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-slate-800/50 rounded-lg border border-slate-700/50">
                     <p className="text-xs sm:text-sm font-semibold mb-3">Select Attributes:</p>
                     <div className="space-y-2 mb-3">
-                      {availableAttributes.map((attr) => (
+                      {attributes.map((attr) => (
                         <button
-                          key={attr.id}
+                          key={`${attr.category}:${attr.name}`}
                           onClick={() => handleAddAttribute(attr)}
-                          disabled={selectedAttributes.some((a) => a.id === attr.id)}
+                          disabled={selectedAttributes.some((a) => a.category === attr.category && a.name === attr.name)}
                           className="w-full flex items-center justify-between p-2 sm:p-3 rounded-lg border border-slate-700/50 hover:border-emerald-500/30 hover:bg-slate-700/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm"
                         >
                           <div className="flex items-center gap-2 min-w-0">
                             <span className="text-xs text-slate-400">{attr.category}:</span>
                             <span className="font-semibold text-xs sm:text-sm">{attr.name}</span>
                           </div>
-                          {selectedAttributes.some((a) => a.id === attr.id) ? (
+                          {selectedAttributes.some((a) => a.category === attr.category && a.name === attr.name) ? (
                             <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400 flex-shrink-0" />
                           ) : (
                             <Plus className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400 flex-shrink-0" />
@@ -359,12 +389,12 @@ export function EncryptionWizard() {
                         <div className="flex flex-wrap gap-1 sm:gap-2">
                           {selectedAttributes.map((attr) => (
                             <div
-                              key={attr.id}
+                              key={`${attr.category}:${attr.name}`}
                               className="inline-flex items-center gap-1 px-2 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30 text-xs"
                             >
                               <span className="font-medium">{attr.name}</span>
                               <button
-                                onClick={() => handleRemoveAttribute(attr.id)}
+                                onClick={() => handleRemoveAttribute(attr.category,attr.name)}
                                 className="hover:text-red-400 transition-colors"
                               >
                                 <X className="w-3 h-3" />
@@ -380,41 +410,26 @@ export function EncryptionWizard() {
                 {/* User Search for Private Share */}
                 {sharingMode === "private" && (
                   <div className="mt-3 sm:mt-4 p-3 sm:p-4 bg-slate-800/50 rounded-lg border border-slate-700/50">
-                    <p className="text-xs sm:text-sm font-semibold mb-3">Find User:</p>
+                    <p className="text-xs sm:text-sm font-semibold mb-3">Share to:</p>
                     <div className="flex gap-2 mb-3">
                       <div className="flex-1 relative">
                         <Search className="absolute left-2 sm:left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-slate-400" />
                         <input
                           type="text"
-                          placeholder="Search by name..."
-                          value={searchUser}
-                          onChange={(e) => setSearchUser(e.target.value)}
+                          placeholder="Please enter target user's uid here..."
+                          value={targetUid}
+                          onChange={(e) => {
+                            let val = e.target.value.trim();
+                            if (val.toUpperCase().startsWith("ID:")) {
+                            val = val.substring(3).trim();
+                              }
+                            setTargetUid(val);
+                              }}
+                          autoComplete="new-password"
                           className="w-full pl-8 sm:pl-10 pr-3 py-2 rounded-lg bg-slate-900 border border-slate-700/50 text-xs sm:text-sm focus:outline-none focus:border-emerald-500/50"
                         />
                       </div>
-                      <button
-                        onClick={handleSearchUser}
-                        className="px-3 py-2 rounded-lg bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30 transition-colors text-xs sm:text-sm font-medium flex-shrink-0"
-                      >
-                        Search
-                      </button>
                     </div>
-
-                    {foundUser && (
-                      <div className="p-2 sm:p-3 bg-emerald-500/10 rounded-lg border border-emerald-500/30">
-                        <div className="flex items-center justify-between">
-                          <div className="min-w-0">
-                            <p className="text-xs sm:text-sm font-semibold text-emerald-300">
-                              {foundUser.name}
-                            </p>
-                            <p className="text-xs text-emerald-300/70 font-mono truncate">
-                              {foundUser.uid}
-                            </p>
-                          </div>
-                          <CheckCircle className="w-5 h-5 text-emerald-400 flex-shrink-0" />
-                        </div>
-                      </div>
-                    )}
                   </div>
                 )}
               </div>
@@ -462,11 +477,11 @@ export function EncryptionWizard() {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-slate-400">Algorithm:</span>
-                      <span className="font-mono text-emerald-400">AES-256</span>
+                      <span className="font-mono text-emerald-400">AES</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-slate-400">Protection:</span>
-                      <span className="font-mono text-emerald-400">CP-ABE</span>
+                      <span className="font-mono text-emerald-400">ABE</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-slate-400">Mode:</span>
@@ -489,6 +504,34 @@ export function EncryptionWizard() {
           </div>
         )}
       </div>
+
+      {/* Success Modal*/}
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-slate-900 border border-emerald-500/30 rounded-2xl p-6 sm:p-8 max-w-sm w-full shadow-2xl shadow-emerald-500/10 text-center">
+            
+            {/* top logo */}
+            <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-5 border border-emerald-500/20">
+              <CheckCircle className="w-8 h-8 text-emerald-400" />
+            </div>
+            
+            {/* title & sub-title */}
+            <h3 className="text-xl font-bold text-slate-100 mb-2">Encryption Complete</h3>
+            <p className="text-slate-400 text-sm mb-8">
+              Your file has been successfully encrypted. It is now safely stored.
+            </p>
+            
+            {/* close button */}
+            <button
+              onClick={() => setShowSuccessModal(false)}
+              className="w-full bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/50 font-semibold py-2.5 rounded-lg transition-colors"
+            >
+              Done
+            </button>
+            
+          </div>
+        </div>
+      )}     
     </div>
   );
 }

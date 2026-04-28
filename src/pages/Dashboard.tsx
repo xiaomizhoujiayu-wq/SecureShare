@@ -2,13 +2,14 @@ import { DashboardLayout } from "@/components/DashboardLayout";
 import { EncryptionWizard } from "@/components/EncryptionWizard";
 import { Lock } from "lucide-react";
 
+
 export default function Dashboard() {
   return (
     <DashboardLayout>
       <div className="p-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="font-display text-4xl mb-2">ABE Control Panel</h1>
+          <h1 className="font-display text-4xl mb-2">File encryption & upload Panel</h1>
           <p className="text-slate-400">
             Manage your cryptographic identity, encrypt files, and control access with Attribute-Based Encryption
           </p>
@@ -19,8 +20,7 @@ export default function Dashboard() {
         <div className="mb-8">
           <EncryptionWizard />
         </div>
-
-
+        
 
         {/* Security Footer */}
         <div className="glass rounded-xl p-6 border border-emerald-500/20 bg-emerald-500/5">

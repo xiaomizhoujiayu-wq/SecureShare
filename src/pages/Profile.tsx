@@ -9,9 +9,9 @@ export default function Profile() {
       <div className="p-8">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="font-display text-4xl mb-2">Attribute Management</h1>
+          <h1 className="font-display text-4xl mb-2">Basic information</h1>
           <p className="text-slate-400">
-            Manage your cryptographic identity
+            Your identity and active attributes
           </p>
         </div>
 
@@ -22,9 +22,10 @@ export default function Profile() {
 
 
         {/* Attribute Marketplace */}
-        <div className="mb-8">
+        
+        {/* <div className="mb-8">
           <AttributeMarketplace />
-        </div>
+        </div> */}
 
       </div>
     </DashboardLayout>

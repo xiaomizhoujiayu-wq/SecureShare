@@ -46,11 +46,11 @@ useEffect(() => {
 
         // 2. find attribute
         const businessAttributes = attrArray.filter((attr: string) => !attr.startsWith("ID:"));
-
+        console.log(businessAttributes)
         // 3. 
         const parsedAttributes = businessAttributes.map((attrStr: string, index: number) => {
           const parts = attrStr.split(':');
-          const category = parts.length > 1 ? parts[0] : "Tag";
+          const category = parts.length > 1 ? parts[0] : "Role";
           //
           const value = parts.length > 1 ? parts.slice(1).join(':') : attrStr; 
           

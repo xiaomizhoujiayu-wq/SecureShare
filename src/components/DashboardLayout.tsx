@@ -1,6 +1,7 @@
 import { useLocation} from "wouter";
 import { LogOut, FileText, BarChart3, User, Settings, Folder, Home, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+
 import { useState, useEffect } from "react";
 
 interface DashboardLayoutProps {
@@ -17,11 +18,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     { label: "Upload & Encrypt", icon: Home, href: "/dashboard" },
     { label: "File explorer", icon: Folder, href: "/explorer" },
     { label: "Profile", icon: User, href: "/profile" },
-
   ];
   if (userRole === 'ADMIN') {
     navItems.push({ label: "Admin", icon: Settings, href: "/admin" });
   }
+   if (userRole === 'SUB_ADMIN') {
+    navItems.push({ label: "Sub_Admin", icon: User, href: "/sub_admin" });
+  } 
+     
+  
   const isActive = (href: string) => location === href;
 
   const closeSidebar = () => setSidebarOpen(false);
@@ -80,7 +85,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
 
         {/* Logo Section */}
-        <div className="p-6 border-b border-slate-700/50" onClick={()=>navigate('/')}>
+        <div className="p-6 border-b border-slate-700/50" onClick={handleLogout}>
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center">
               <FileText className="w-6 h-6 text-white" />
@@ -167,7 +172,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
         {/* Home Logo Section */}
         <div className="flex justify-end p-4">
-          <button onClick={()=>navigate('/')} 
+          <button onClick={handleLogout} 
           className="        
           w-10 h-10 rounded-full
           bg-emerald-500 hover:bg-emerald-600

@@ -1,14 +1,16 @@
 import { useState, useEffect } from "react";
 import { 
-  Plus, Users, Tag, X, Check, AlertCircle, Loader2, 
-  Edit2, Trash2, ChevronDown
+  Plus, ShieldCheck, Users, Tag, X, Check, AlertCircle, Loader2, 
+  Edit2, Trash2, ChevronDown, Search, Filter, ShieldPlus
 } from "lucide-react";
+
 
 interface User {
   id: number;
   username: string;
   email: string;
   attributes: string;
+  role?: string; // ADMIN, SUB_ADMIN, USER
 }
 
 interface Attribute {
@@ -18,22 +20,31 @@ interface Attribute {
 }
 
 export function AdminPanel() {
-  // 
+
   const [users, setUsers] = useState<User[]>([]);
   const [catalog, setCatalog] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
-  const [showModal, setShowModal] = useState(false);
+  const [showModal, setShowModal] = useState(false); 
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [newAttributes, setNewAttributes] = useState("");
   const [newCatalogAttr, setNewCatalogAttr] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  
+
+  // filter and query
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterRole, setFilterRole] = useState("ALL"); // ALL, SUB_ADMIN, USER
+
+  // new subadmin
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [newSubAdmin, setNewSubAdmin] = useState({ username: "", email: "", password: "" });
 
   const baseUrl = "http://localhost:8080/abe";
   const token = localStorage.getItem("auth_token");
 
-  
   useEffect(() => {
     if (!token) {
       window.location.href = "/signin";
@@ -41,9 +52,8 @@ export function AdminPanel() {
     }
     fetchUsers();
     fetchCatalog();
-  }, []);
+  }, [token]); // ✅ FIX: Added token to dependency array
 
-  // 
   const fetchUsers = async () => {
     setLoading(true);
     setError(null);
@@ -57,13 +67,11 @@ export function AdminPanel() {
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to load users. Are you admin?";
       setError(message);
-      console.error(message);
     } finally {
       setLoading(false);
     }
   };
 
-  // 
   const fetchCatalog = async () => {
     try {
       const res = await fetch(`${baseUrl}/attributes`, {
@@ -77,13 +85,11 @@ export function AdminPanel() {
     }
   };
 
-  // 
   const addToCatalog = async () => {
     if (!newCatalogAttr.trim()) {
       setError("Please enter an attribute name");
       return;
     }
-
     setIsSubmitting(true);
     setError(null);
     try {
@@ -98,26 +104,21 @@ export function AdminPanel() {
           description: "Added via Admin Panel"
         })
       });
-
       if (!res.ok) {
         const errorData = await res.json();
         throw new Error(errorData.error || "Failed to add attribute");
       }
-
       setSuccess(`Attribute "${newCatalogAttr}" added successfully!`);
       setNewCatalogAttr("");
       await fetchCatalog();
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Network error. Ensure backend is running.";
-      setError(message);
-      console.error(message);
+      setError(err instanceof Error ? err.message : "Network error.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // 
   const openAssignModal = (user: User) => {
     setSelectedUser(user);
     const allAttrs = user.attributes ? user.attributes.split(",") : [];
@@ -127,45 +128,22 @@ export function AdminPanel() {
     setError(null);
   };
 
-  // 
   const submitAssignment = async () => {
-    if (!selectedUser) return;
-
-    if (!newAttributes.trim()) {
-      setError("Please enter at least one attribute");
-      return;
-    }
-
+    if (!selectedUser || !newAttributes.trim()) return;
     setIsSubmitting(true);
     setError(null);
-
     try {
-      const finalAttrList = newAttributes
-        .split(",")
-        .map(a => a.trim())
-        .filter(a => a && !a.startsWith("ID:"));
-
-      const payload = {
-        targetUserId: parseInt(selectedUser.id.toString()),
-        attributes: finalAttrList.join(",")
-      };
-
-      console.log("Submitting payload:", payload);
-
+      const finalAttrList = newAttributes.split(",").map(a => a.trim()).filter(a => a && !a.startsWith("ID:"));
+      const payload = { targetUserId: parseInt(selectedUser.id.toString()), attributes: finalAttrList.join(",") };
       const res = await fetch(`${baseUrl}/admin/assign-attributes`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
         body: JSON.stringify(payload)
       });
-
       if (!res.ok) {
-        const errorMsg = await res.text();
-        throw new Error(errorMsg || "Failed to update attributes");
+        const errorText = await res.text();
+        throw new Error(errorText || "Failed to update attributes");
       }
-
       setSuccess("Attributes updated successfully!");
       setShowModal(false);
       setNewAttributes("");
@@ -173,27 +151,63 @@ export function AdminPanel() {
       await fetchUsers();
       setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Request error";
-      setError(message);
-      console.error(message);
+      setError(err instanceof Error ? err.message : "Request error");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  // 
+
+  const createSubAdmin = async () => {
+    if (!newSubAdmin.username || !newSubAdmin.email || !newSubAdmin.password) {
+      setError("Please fill in all fields (username, email, password)");
+      return;
+    }
+    setIsCreating(true);
+    setError(null);
+    try {
+      const res = await fetch(`${baseUrl}/admin/subadmin`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(newSubAdmin)
+      });
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.error || "Failed to create Sub-Admin");
+      }
+      
+      setSuccess(`Sub-Admin ${newSubAdmin.username} created successfully!`);
+      setShowCreateModal(false);
+      setNewSubAdmin({ username: "", email: "", password: "" }); 
+      await fetchUsers(); 
+      setTimeout(() => setSuccess(null), 3000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Error creating Sub-Admin");
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
   const parseAttributes = (attrString: string | undefined): string[] => {
     if (!attrString) return [];
-    return attrString
-      .split(",")
-      .map(a => a.trim())
-      .filter(a => a && !a.startsWith("ID:"));
+    return attrString.split(",").map(a => a.trim()).filter(a => a && !a.startsWith("ID:"));
   };
+
+  // user list based on search and filter
+  const filteredUsers = users.filter((user) => {
+    const matchRole = filterRole === "ALL" || user.role === filterRole;
+    const matchSearch = user.username.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                        user.email.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchRole && matchSearch;
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8">
       <div className="max-w-6xl mx-auto">
-        {/* 页面头部 */}
+        
         <div className="flex justify-between items-center mb-8">
           <h1 className="font-display text-3xl text-slate-100 flex items-center gap-3">
             <Users className="w-8 h-8 text-emerald-400" />
@@ -206,16 +220,9 @@ export function AdminPanel() {
           <div className="mb-6 p-4 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center gap-3">
             <AlertCircle className="w-5 h-5 text-red-400" />
             <p className="text-sm text-red-300">{error}</p>
-            <button 
-              onClick={() => setError(null)}
-              className="ml-auto text-red-400 hover:text-red-300"
-            >
-              <X className="w-4 h-4" />
-            </button>
+            <button onClick={() => setError(null)} className="ml-auto text-red-400 hover:text-red-300"><X className="w-4 h-4" /></button>
           </div>
         )}
-
-
         {success && (
           <div className="mb-6 p-4 rounded-lg bg-emerald-500/20 border border-emerald-500/50 flex items-center gap-3">
             <Check className="w-5 h-5 text-emerald-400" />
@@ -223,7 +230,7 @@ export function AdminPanel() {
           </div>
         )}
 
-
+        {/* Attribute Catalog */}
         <div className="glass rounded-xl border border-slate-700/50 p-6 mb-8 shadow-xl">
           <h2 className="text-xl font-display text-slate-100 mb-6 flex items-center gap-3">
             <Tag className="w-6 h-6 text-emerald-400" />
@@ -265,87 +272,119 @@ export function AdminPanel() {
               </div>
             </div>
 
-
             <div className="bg-slate-800/30 border border-slate-700/50 p-5 rounded-xl">
-              <label className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-4 block">
-                Active Attributes List
-              </label>
+              <label className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-4 block">Active Attributes List</label>
               <div className="flex flex-wrap gap-2.5 max-h-64 overflow-y-auto pr-2">
-                {catalog.length > 0 ? (
-                  catalog.map((attr) => (
-                    <span
-                      key={attr}
-                      className="px-4 py-2 bg-slate-900/50 border border-slate-700/50 text-slate-300 rounded-lg text-xs font-semibold flex items-center gap-2 hover:border-emerald-500/50 hover:text-emerald-300 transition-colors"
-                    >
-                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                      {attr}
-                    </span>
-                  ))
-                ) : (
-                  <div className="text-sm text-slate-500 italic py-2">
-                    No attributes registered yet.
-                  </div>
+                {catalog.length > 0 ? catalog.map((attr) => (
+                  <span key={attr} className="px-4 py-2 bg-slate-900/50 border border-slate-700/50 text-slate-300 rounded-lg text-xs font-semibold flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> {attr}
+                  </span>
+                )) : (
+                  <span className="text-slate-500 text-xs italic">No attributes in catalog yet</span>
                 )}
               </div>
             </div>
           </div>
         </div>
 
-  
+        {/* Block 2: User Management */}
         <div className="glass rounded-xl border border-slate-700/50 overflow-hidden shadow-xl">
-  
-          <div className="p-6 border-b border-slate-700/50 bg-slate-900/50">
-            <h2 className="text-xl font-display text-slate-100 flex items-center gap-3">
-              <Users className="w-6 h-6 text-cyan-400" />
-              User Management
-            </h2>
+          
+          <div className="p-6 border-b border-slate-700/50 bg-slate-900/50 flex flex-col sm:flex-row justify-between items-center gap-4">
+            
+
+            <div className="flex items-center gap-2 bg-slate-800 p-1 rounded-lg border border-slate-700/50">
+              <Filter className="w-4 h-4 text-slate-400 ml-2" />
+              <button onClick={() => setFilterRole("ALL")} className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${filterRole === "ALL" ? "bg-slate-700 text-white" : "text-slate-400 hover:text-slate-200"}`}>
+                All
+              </button>
+              <button onClick={() => setFilterRole("SUB_ADMIN")} className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${filterRole === "SUB_ADMIN" ? "bg-cyan-500/20 text-cyan-300" : "text-slate-400 hover:text-cyan-300"}`}>
+                Sub-Admins
+              </button>
+              <button onClick={() => setFilterRole("USER")} className={`px-3 py-1.5 rounded-md text-sm font-medium transition-all ${filterRole === "USER" ? "bg-slate-700 text-white" : "text-slate-400 hover:text-slate-200"}`}>
+                Users
+              </button>
+            </div>
+
+
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <div className="relative flex-1 sm:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input 
+                  type="text" 
+                  placeholder="Search user..." 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 bg-slate-800 border border-slate-700 rounded-lg text-sm text-slate-200 focus:border-emerald-500 outline-none transition-all"
+                />
+              </div>
+              <button 
+                onClick={() => setShowCreateModal(true)}
+                className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white px-4 py-2 rounded-lg font-semibold transition-all text-sm whitespace-nowrap"
+              >
+                <Plus className="w-4 h-4" />
+                New Sub-Admin
+              </button>
+            </div>
           </div>
 
 
           {loading ? (
             <div className="py-20 flex flex-col items-center justify-center gap-3 text-slate-400">
-              <Loader2 className="w-8 h-8 animate-spin text-cyan-500" />
+              <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
               <p className="text-sm">Loading users...</p>
             </div>
           ) : (
-
             <div className="overflow-x-auto">
               <table className="w-full text-left text-sm">
-                <thead className="bg-slate-900/50 border-b border-slate-700/50">
+                <thead className="bg-slate-900/30 border-b border-slate-700/50">
                   <tr>
                     <th className="px-6 py-4 font-semibold text-slate-300">ID</th>
-                    <th className="px-6 py-4 font-semibold text-slate-300">Username</th>
-                    <th className="px-6 py-4 font-semibold text-slate-300">Email</th>
-                    <th className="px-6 py-4 font-semibold text-slate-300">Attributes</th>
+                    <th className="px-6 py-4 font-semibold text-slate-300">User Info</th>
+                    <th className="px-6 py-4 font-semibold text-slate-300">Role</th> 
+                    <th className="px-6 py-4 font-semibold text-slate-300 w-[420px]">Attributes</th>
                     <th className="px-6 py-4 font-semibold text-slate-300 text-right">Action</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {users.length === 0 ? (
+                  {filteredUsers.length === 0 ? (
                     <tr>
-                      <td colSpan={5} className="px-6 py-8 text-center text-slate-500">
+                      <td colSpan={5} className="px-6 py-12 text-center text-slate-500">
                         <AlertCircle className="w-6 h-6 mx-auto mb-2 opacity-50" />
-                        No users found
+                        No users found matching your criteria
                       </td>
                     </tr>
                   ) : (
-                    users.map((user) => (
-                      <tr
-                        key={user.id}
-                        className="border-b border-slate-700/30 hover:bg-slate-800/40 transition-colors"
-                      >
+                    filteredUsers.map((user) => (
+                      <tr key={user.id} className="border-b border-slate-700/30 hover:bg-slate-800/40 transition-colors">
                         <td className="px-6 py-4 text-slate-400">#{user.id}</td>
-                        <td className="px-6 py-4 font-medium text-slate-200">{user.username}</td>
-                        <td className="px-6 py-4 text-slate-400 text-sm">{user.email}</td>
+                        <td className="px-6 py-4" >
+                          <div className="font-bold text-slate-200">{user.username}</div>
+                          <div className="text-xs text-slate-500 mt-0.5">{user.email}</div>
+                        </td>
+                        
+                        {/* === role === */}
                         <td className="px-6 py-4">
-                          <div className="flex flex-wrap gap-1.5">
+                          {user.role === 'SUB_ADMIN' ? (
+                            <span className="inline-flex items-center px-2 py-1 rounded text-xs font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
+                              Sub-Admin
+                            </span>
+                          ) : user.role === 'ADMIN' ? (
+                            <span className="inline-flex items-center px-2 py-1 rounded text-xs font-bold bg-rose-500/10 text-rose-400 border border-rose-500/30">
+                              Super Admin
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-slate-800 text-slate-400 border border-slate-700">
+                              User
+                            </span>
+                          )}
+                        </td>
+                          {/*== attribute == */}
+                        <td className="px-6 py-4 w-[420px]">
+                          <div className="flex flex-wrap gap-1.5 items-center max-w-[400px]">
                             {parseAttributes(user.attributes).length > 0 ? (
                               parseAttributes(user.attributes).map((attr) => (
-                                <span
-                                  key={attr}
-                                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 text-xs font-medium"
-                                >
-                                  <Check className="w-3 h-3" />
+                                <span key={attr} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-medium">
                                   {attr}
                                 </span>
                               ))
@@ -357,9 +396,9 @@ export function AdminPanel() {
                         <td className="px-6 py-4 text-right">
                           <button
                             onClick={() => openAssignModal(user)}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600/20 border border-emerald-500/50 text-emerald-400 hover:bg-emerald-600/30 hover:border-emerald-500/70 transition-all text-sm font-semibold"
+                            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-600/20 border border-emerald-500/50 text-emerald-400 hover:bg-emerald-600/40 transition-all text-xs font-semibold"
                           >
-                            <Edit2 className="w-4 h-4" />
+                            <Edit2 className="w-3.5 h-3.5" />
                             Assign
                           </button>
                         </td>
@@ -373,8 +412,7 @@ export function AdminPanel() {
         </div>
       </div>
 
-
-      {showModal && selectedUser && (
+       {showModal && selectedUser && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
           <div className="glass rounded-xl border border-slate-700/50 shadow-2xl w-full max-w-md overflow-hidden">
 
@@ -391,7 +429,7 @@ export function AdminPanel() {
               </button>
             </div>
 
-            {/* 弹窗内容 */}
+  
             <div className="p-6 space-y-4">
               {error && (
                 <div className="p-3 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center gap-2">
@@ -402,7 +440,7 @@ export function AdminPanel() {
 
               <div>
                 <label className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-2 block">
-                  Attributes (comma-separated)
+                  Attributes
                 </label>
                 <input
                   type="text"
@@ -466,6 +504,96 @@ export function AdminPanel() {
           </div>
         </div>
       )}
+
+      {/* === Sub-Admin window === */}
+      {showCreateModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="glass rounded-xl border border-slate-700/50 shadow-2xl w-full max-w-md overflow-hidden">
+            
+            <div className="p-6 border-b border-slate-700/50 bg-slate-900/50 flex justify-between items-center">
+              <h3 className="font-display text-lg text-slate-100 flex items-center gap-2">
+                Create Sub-Admin
+              </h3>
+              <button onClick={() => setShowCreateModal(false)} className="text-slate-400 hover:text-slate-200">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              {error && (
+                <div className="p-3 rounded-lg bg-red-500/20 border border-red-500/50 flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-red-400" />
+                  <p className="text-xs text-red-300">{error}</p>
+                </div>
+              )}
+              <div>
+                <label className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-2 block">Username</label>
+                <input 
+                  type="text" 
+                  value={newSubAdmin.username}
+                  onChange={(e) => setNewSubAdmin({...newSubAdmin, username: e.target.value})}
+                  placeholder="Enter username"
+                  disabled={isCreating}
+                  autoComplete="off"
+                  className="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-700/50 rounded-lg text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 disabled:opacity-50 transition-all"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-2 block">Email</label>
+                <input 
+                  type="email" 
+                  value={newSubAdmin.email}
+                  onChange={(e) => setNewSubAdmin({...newSubAdmin, email: e.target.value})}
+                  placeholder="Enter email"
+                  disabled={isCreating}
+                  autoComplete="off"
+                  className="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-700/50 rounded-lg text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 disabled:opacity-50 transition-all"
+                />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-2 block">Initial Password</label>
+                <input 
+                  type="password" 
+                  value={newSubAdmin.password}
+                  onChange={(e) => setNewSubAdmin({...newSubAdmin, password: e.target.value})}
+                  placeholder="Enter password"
+                  disabled={isCreating}
+                  autoComplete="new-password"
+                  className="w-full px-4 py-2.5 bg-slate-900/50 border border-slate-700/50 rounded-lg text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 disabled:opacity-50 transition-all"
+                />
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-slate-700/50 bg-slate-900/20 flex gap-3">
+              <button
+                onClick={() => setShowCreateModal(false)}
+                disabled={isCreating}
+                className="flex-1 py-2.5 px-4 rounded-lg border border-slate-700/50 text-slate-300 hover:bg-slate-800/50 hover:border-slate-600/50 transition-all text-sm font-semibold disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={createSubAdmin}
+                disabled={isCreating || !newSubAdmin.username || !newSubAdmin.email || !newSubAdmin.password}
+                className="flex-1 py-2.5 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all text-sm font-semibold"
+              >
+                {isCreating ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-4 h-4" />
+                    Confirm Creation
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
     </div>
   );
 }

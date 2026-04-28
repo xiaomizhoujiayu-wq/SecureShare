@@ -82,12 +82,13 @@ export function SecureFileExplorer() {
     if (currentUserId === null) return [];
     return allFiles.filter(file => String(file.ownerId) !== String(currentUserId));
   }, [allFiles, currentUserId]);
-
+ 
   // My shared files (files I uploaded)
   const sharedFiles = useMemo(() => {
     if (currentUserId === null) return [];
     return allFiles.filter(file => String(file.ownerId) === String(currentUserId));
   }, [allFiles, currentUserId]);
+
 
   // Reusable table component for both sections
   const FileTable = ({ files, isMyFiles }: { files: FileItem[]; isMyFiles: boolean }) => (

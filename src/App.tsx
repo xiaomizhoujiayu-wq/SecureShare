@@ -12,7 +12,7 @@ import Profile from "@/pages/Profile";
 import admin from "@/pages/admin";
 import SignIn from "@/pages/SignIn";
 import SignUp from "@/pages/SignUp";
-
+import SubAdmin from "@/pages/Sub_admin";
 
 
 function Router() {
@@ -25,6 +25,7 @@ function Router() {
       <Route path={"/explorer"} component={FileExplorer} />
       <Route path={"/profile"} component={Profile} />
       <Route path={"/admin"} component={admin} />
+      <Route path={"/sub_admin"} component={SubAdmin} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
