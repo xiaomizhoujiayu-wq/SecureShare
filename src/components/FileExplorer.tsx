@@ -91,60 +91,60 @@ export function SecureFileExplorer() {
 
 
   // Reusable table component for both sections
-  const FileTable = ({ files, isMyFiles }: { files: FileItem[]; isMyFiles: boolean }) => (
-    <div className="hidden md:block overflow-x-auto bg-slate-900/10">
+ const FileTable = ({ files, isMyFiles }: { files: FileItem[]; isMyFiles: boolean }) => (
+    <div className="hidden md:block overflow-x-auto bg-slate-50 dark:bg-slate-900/10 transition-colors duration-300">
       <table className="w-full">
         <thead>
-          <tr className="border-b border-slate-700/50 bg-slate-900/50">
-            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-300">File name</th>
-            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-300">owner</th>
-            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-300">policy</th>
-            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-300">accessibility</th>
-            <th className="px-6 py-4 text-right text-xs font-semibold text-slate-300">action</th>
+          <tr className="border-b border-slate-200 dark:border-slate-700/50 bg-slate-100 dark:bg-slate-900/50 transition-colors duration-300">
+            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 dark:text-slate-300">File name</th>
+            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 dark:text-slate-300">owner</th>
+            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 dark:text-slate-300">policy</th>
+            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 dark:text-slate-300">accessibility</th>
+            <th className="px-6 py-4 text-right text-xs font-semibold text-slate-600 dark:text-slate-300">action</th>
           </tr>
         </thead>
         <tbody>
           {files.map((file) => (
-            <tr key={file.id} className="border-b border-slate-700/30 hover:bg-slate-800/40 transition-colors">
+            <tr key={file.id} className="border-b border-slate-200 dark:border-slate-700/30 hover:bg-slate-100 dark:hover:bg-slate-800/40 transition-colors">
               <td className="px-6 py-4">
                 <div className="flex items-center gap-3">
-                  <FileText className={`w-5 h-5 ${isMyFiles ? "text-emerald-400" : "text-cyan-400"}`} />
+                  <FileText className={`w-5 h-5 ${isMyFiles ? "text-emerald-600 dark:text-emerald-400" : "text-cyan-600 dark:text-cyan-400"}`} />
                   <div>
-                    <p className="text-sm font-medium text-slate-200">{file.name}</p>
-                    <p className="text-[10px] text-slate-500">{file.uploadDate}</p>
+                    <p className="text-sm font-medium text-slate-900 dark:text-slate-200">{file.name}</p>
+                    <p className="text-[10px] text-slate-500 dark:text-slate-400">{file.uploadDate}</p>
                   </div>
                 </div>
               </td>
-              <td className="px-6 py-4 text-sm text-slate-300">{file.ownerName}</td>
+              <td className="px-6 py-4 text-sm text-slate-700 dark:text-slate-300">{file.ownerName}</td>
               <td className="px-6 py-4">
-                <div className="inline-flex items-center gap-2 px-2 py-1 rounded-md bg-slate-800/50 border border-slate-700/50" title={file.policyDetails}>
-                  <Shield className={`w-3 h-3 ${file.accessible ? "text-emerald-400" : "text-slate-500"}`} />
-                  <span className="text-[11px] text-slate-300 truncate max-w-[150px]">{file.policy}</span>
+                <div className="inline-flex items-center gap-2 px-2 py-1 rounded-md bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 transition-colors" title={file.policyDetails}>
+                  <Shield className={`w-3 h-3 ${file.accessible ? "text-emerald-500 dark:text-emerald-400" : "text-slate-400 dark:text-slate-500"}`} />
+                  <span className="text-[11px] text-slate-700 dark:text-slate-300 truncate max-w-[150px]">{file.policy}</span>
                 </div>
               </td>
               <td className="px-6 py-4">
                 {file.accessible ? (
-                  <span className="text-[11px] font-semibold text-emerald-400 flex items-center gap-1.5">
-                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> accessible
+                  <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400" /> accessible
                   </span>
                 ) : (
-                  <span className="text-[11px] font-semibold text-slate-400 flex items-center gap-1.5">
+                  <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
                     <Lock className="w-3 h-3" /> locked
                   </span>
                 )}
               </td>
               <td className="px-6 py-4 text-right">
                 {isMyFiles ? (
-                  <button className="p-2 hover:bg-emerald-500/20 rounded-lg text-slate-400 hover:text-emerald-400 transition-colors">
+                  <button className="p-2 hover:bg-emerald-50 dark:hover:bg-emerald-500/20 rounded-lg text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
                     <Download className="w-4 h-4" />
                   </button>
                 ) : (
                   file.accessible ? (
-                    <button className="p-2 hover:bg-cyan-500/20 rounded-lg text-slate-400 hover:text-cyan-400 transition-colors">
+                    <button className="p-2 hover:bg-cyan-50 dark:hover:bg-cyan-500/20 rounded-lg text-slate-400 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors">
                       <Download className="w-4 h-4" />
                     </button>
                   ) : (
-                    <button className="p-2 hover:bg-yellow-500/10 rounded-lg text-slate-400 hover:text-yellow-500 transition-colors">
+                    <button className="p-2 hover:bg-yellow-50 dark:hover:bg-yellow-500/10 rounded-lg text-slate-400 hover:text-yellow-600 dark:hover:text-yellow-500 transition-colors">
                       <AlertCircle className="w-4 h-4" />
                     </button>
                   )
@@ -159,9 +159,9 @@ export function SecureFileExplorer() {
 
   // Reusable mobile card component
   const MobileFileCards = ({ files, isMyFiles }: { files: FileItem[]; isMyFiles: boolean }) => (
-    <div className="md:hidden divide-y divide-slate-700/50 bg-slate-900/10">
+    <div className="md:hidden divide-y divide-slate-200 dark:divide-slate-700/50 bg-slate-50 dark:bg-slate-900/10 transition-colors duration-300">
       {files.map((file) => (
-        <div key={file.id} className="p-4">
+        <div key={file.id} className="p-4 hover:bg-white dark:hover:bg-slate-800/20 transition-colors">
           <div 
             className="flex items-center justify-between cursor-pointer"
             onClick={() => isMyFiles 
@@ -170,27 +170,27 @@ export function SecureFileExplorer() {
             }
           >
             <div className="flex items-center gap-3">
-              <FileText className={`w-8 h-8 ${isMyFiles ? "text-emerald-400" : "text-cyan-400"}`} />
+              <FileText className={`w-8 h-8 ${isMyFiles ? "text-emerald-600 dark:text-emerald-400" : "text-cyan-600 dark:text-cyan-400"}`} />
               <div>
-                <p className="text-sm font-medium text-slate-200">{file.name}</p>
-                <p className="text-xs text-slate-500">{file.ownerName}</p>
+                <p className="text-sm font-medium text-slate-900 dark:text-slate-200">{file.name}</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">{file.ownerName}</p>
               </div>
             </div>
-            <ChevronDown className={`w-5 h-5 text-slate-500 transition-transform ${
+            <ChevronDown className={`w-5 h-5 text-slate-400 dark:text-slate-500 transition-transform ${
               isMyFiles 
                 ? (expandedMyFile === file.id ? 'rotate-180' : '')
                 : (expandedFile === file.id ? 'rotate-180' : '')
             }`} />
           </div>
           {(isMyFiles ? expandedMyFile === file.id : expandedFile === file.id) && (
-            <div className="mt-4 pt-4 border-t border-slate-700/50 space-y-3">
+            <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700/50 space-y-3">
               <div className="flex justify-between text-xs">
-                <span className="text-slate-500">date:</span>
-                <span className="text-slate-300">{file.uploadDate}</span>
+                <span className="text-slate-500 dark:text-slate-400">date:</span>
+                <span className="text-slate-700 dark:text-slate-300">{file.uploadDate}</span>
               </div>
               <div className="flex justify-between text-xs">
-                <span className="text-slate-500">policy:</span>
-                <span className="text-emerald-400">{file.policy}</span>
+                <span className="text-slate-500 dark:text-slate-400">policy:</span>
+                <span className="text-emerald-600 dark:text-emerald-400">{file.policy}</span>
               </div>
               <Button size="sm" className="w-full gap-2" variant={file.accessible ? "default" : "secondary"}>
                 {isMyFiles ? (
@@ -211,24 +211,24 @@ export function SecureFileExplorer() {
   return (
     <div className="space-y-6">
       {/* SECTION 1: Shared With Me (Files others shared with me) */}
-      <div className="glass rounded-xl border border-slate-700/50 overflow-hidden shadow-xl">
-        <div className="p-4 sm:p-6 border-b border-slate-700/50 bg-slate-900/20">
+      <div className="bg-white dark:bg-slate-900/40 backdrop-blur-md rounded-xl border border-slate-200 dark:border-slate-700/50 overflow-hidden shadow-sm dark:shadow-xl transition-colors duration-300">
+        <div className="p-4 sm:p-6 border-b border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-900/20 transition-colors duration-300">
           <div className="flex items-center gap-3 mb-1">
-            <FolderDown className="w-6 h-6 text-cyan-400" />
-            <h2 className="font-display text-xl sm:text-2xl text-slate-100">Shared With Me</h2>
+            <FolderDown className="w-6 h-6 text-cyan-600 dark:text-cyan-400" />
+            <h2 className="font-display text-xl sm:text-2xl text-slate-900 dark:text-slate-100">Shared With Me</h2>
           </div>
-          <p className="text-slate-400 text-xs sm:text-sm">
+          <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm">
             Files others have shared with you - all encrypted safely
           </p>
         </div>
 
         {isLoading ? (
-          <div className="py-24 flex flex-col items-center justify-center gap-3 text-slate-400">
+          <div className="py-24 flex flex-col items-center justify-center gap-3 text-slate-500 dark:text-slate-400">
             <Loader2 className="w-8 h-8 animate-spin text-cyan-500" />
             <p className="text-sm">decrypting list...</p>
           </div>
         ) : sharedFiles.length === 0 ? (
-          <div className="py-20 flex flex-col items-center justify-center text-slate-500">
+          <div className="py-20 flex flex-col items-center justify-center text-slate-400 dark:text-slate-500">
             <FolderDown className="w-12 h-12 mb-3 opacity-20" />
             <p className="text-sm">No files shared with you yet</p>
           </div>
@@ -241,24 +241,24 @@ export function SecureFileExplorer() {
       </div>
 
       {/* SECTION 2: My Shared Files (Files I uploaded) */}
-      <div className="glass rounded-xl border border-slate-700/50 overflow-hidden shadow-xl">
-        <div className="p-4 sm:p-6 border-b border-slate-700/50 bg-slate-900/20">
+      <div className="bg-white dark:bg-slate-900/40 backdrop-blur-md rounded-xl border border-slate-200 dark:border-slate-700/50 overflow-hidden shadow-sm dark:shadow-xl transition-colors duration-300">
+        <div className="p-4 sm:p-6 border-b border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-900/20 transition-colors duration-300">
           <div className="flex items-center gap-3 mb-1">
-            <Upload className="w-6 h-6 text-emerald-400" />
-            <h2 className="font-display text-xl sm:text-2xl text-slate-100">My Shared Files</h2>
+            <Upload className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+            <h2 className="font-display text-xl sm:text-2xl text-slate-900 dark:text-slate-100">My Shared Files</h2>
           </div>
-          <p className="text-slate-400 text-xs sm:text-sm">
+          <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm">
             Files you have uploaded and shared with others
           </p>
         </div>
 
         {isLoading ? (
-          <div className="py-24 flex flex-col items-center justify-center gap-3 text-slate-400">
+          <div className="py-24 flex flex-col items-center justify-center gap-3 text-slate-500 dark:text-slate-400">
             <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
             <p className="text-sm">loading your files...</p>
           </div>
         ) : mySharedFiles.length === 0 ? (
-          <div className="py-20 flex flex-col items-center justify-center text-slate-500">
+          <div className="py-20 flex flex-col items-center justify-center text-slate-400 dark:text-slate-500">
             <Upload className="w-12 h-12 mb-3 opacity-20" />
             <p className="text-sm">No files uploaded yet</p>
           </div>
@@ -270,5 +270,4 @@ export function SecureFileExplorer() {
         )}
       </div>
     </div>
-  );
-}
+  );}

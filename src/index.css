@@ -116,11 +116,11 @@
 
 @layer base {
   :root {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --primary: 142.1 76.2% 36.3%;
-    --muted: 217.2 32.6% 17.5%;
+    --background: 0 0% 100%; 
+    --foreground: 222.2 47.4% 11.2%; 
+    --primary: 160 84% 39%; 
+    --border: 214.3 31.8% 91.4%; 
+    --muted: 210 40% 96.1%;
   }
 
   .dark {
