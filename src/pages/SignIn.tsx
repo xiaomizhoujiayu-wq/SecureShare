@@ -19,6 +19,7 @@ export default function SignIn() {
     try {
       const result = await loginUser(email, password);
       handleLoginSuccess(result, email);
+      navigate("/home");
     } catch (err) {
       alert("Login failed! Check console.");
       setIsLoading(false);

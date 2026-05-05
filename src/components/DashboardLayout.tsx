@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ThemeTogglle"; 
 import { useState, useEffect } from "react";
 import {SecureShareLogo} from "@/components/logo";
+import { navigate } from "wouter/use-browser-location";
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
@@ -178,7 +179,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <div className="flex justify-end items-center gap-3 p-4">
           <ThemeToggle  />
           <button 
-            onClick={() => navigate("/")} 
+            onClick={() => navigate("/home")} 
             className="w-8 h-8 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white flex items-center justify-center transition-colors shadow-sm"
           >
             <Home className="w-5 h-5" />

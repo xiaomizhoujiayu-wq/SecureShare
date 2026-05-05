@@ -14,6 +14,8 @@ import SignIn from "@/pages/SignIn";
 import SignUp from "@/pages/SignUp";
 import SubAdmin from "@/pages/Sub_admin";
 
+import Homepage from "@/pages/homepage";
+
 
 
 function Router() {
@@ -28,6 +30,7 @@ function Router() {
       <Route path={"/admin"} component={admin} />
       <Route path={"/sub_admin"} component={SubAdmin} />
       <Route path={"/404"} component={NotFound} />
+      <Route path="/home" component={Homepage} />
       {/* Final fallback route */}
       <Route component={NotFound} />
     </Switch>
