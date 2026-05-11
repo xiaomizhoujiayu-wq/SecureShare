@@ -1,5 +1,5 @@
 import { useLocation} from "wouter";
-import { LogOut, FileText, BarChart3, User, Settings, Folder, Home, Menu, X } from "lucide-react";
+import { LogOut, FileText, BarChart3, User, Settings, Folder, Home, Upload, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ThemeTogglle"; 
 import { useState, useEffect } from "react";
@@ -16,9 +16,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const userRole = localStorage.getItem('user_role');
 
   const navItems = [
-    { label: "Upload & Encrypt", icon: Home, href: "/dashboard" },
+    { label: "Upload & Encrypt", icon: Upload, href: "/dashboard" },
     { label: "File explorer", icon: Folder, href: "/explorer" },
     { label: "Profile", icon: User, href: "/profile" },
+    { label: "Home", icon: Home, href: "/home" },
   ];
   if (userRole === 'ADMIN') {
     navItems.push({ label: "Admin", icon: Settings, href: "/admin" });

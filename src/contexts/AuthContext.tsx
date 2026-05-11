@@ -31,9 +31,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     // 
     if (result.role === 'admin') {
-      setLocation('/dashboard'); // admin pannel
+      setLocation('/home'); // admin pannel
     } else {
-      setLocation('/dashboard'); // normal user pannel
+      setLocation('/home'); // normal user pannel
     }
   };
 

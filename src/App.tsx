@@ -30,7 +30,7 @@ function Router() {
       <Route path={"/admin"} component={admin} />
       <Route path={"/sub_admin"} component={SubAdmin} />
       <Route path={"/404"} component={NotFound} />
-      <Route path="/home" component={Homepage} />
+      <Route path={"/home"} component={Homepage} />
       {/* Final fallback route */}
       <Route component={NotFound} />
     </Switch>

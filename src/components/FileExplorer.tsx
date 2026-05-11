@@ -4,7 +4,8 @@ import {
   AlertCircle, ChevronDown, FolderDown, Loader2, Upload
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getMyAttributes, getAllFiles } from "@/lib/api";
+// import { getMyAttributes, getAllFiles } from "@/lib/api";
+import { getMyAttributes, getAllFiles, downloadFile } from "@/lib/api";
 
 interface BackendFileResponse {
   id: number;
@@ -89,7 +90,83 @@ export function SecureFileExplorer() {
     return allFiles.filter(file => String(file.ownerId) === String(currentUserId));
   }, [allFiles, currentUserId]);
 
+  const base64ToBytes = (base64: string): Uint8Array => {
+    const binary = atob(base64);
+    return Uint8Array.from(binary, (char) => char.charCodeAt(0));
+  };
 
+  const decryptFrontendEncryptedFile = async (
+    encryptedBuffer: ArrayBuffer,
+    base64Key: string
+  ): Promise<ArrayBuffer> => {
+    const encryptedBytes = new Uint8Array(encryptedBuffer);
+
+    // 上传时前 12 字节保存的是 IV
+    const iv = encryptedBytes.slice(0, 12);
+
+    // 后面的内容才是真正的密文
+    const ciphertext = encryptedBytes.slice(12);
+
+    const rawKeyBytes = base64ToBytes(base64Key);
+
+    const cryptoKey = await window.crypto.subtle.importKey(
+      "raw",
+      rawKeyBytes,
+      { name: "AES-GCM" },
+      false,
+      ["decrypt"]
+    );
+
+    return await window.crypto.subtle.decrypt(
+      { name: "AES-GCM", iv },
+      cryptoKey,
+      ciphertext
+    );
+  };
+
+
+
+  const handleDownload = async (file: FileItem) => {
+    try {
+      const response = await downloadFile(file.id);
+
+      // 后端返回给前端的 AES key
+      const sessionKeyBase64 = response.headers["x-session-key"];
+
+      if (!sessionKeyBase64) {
+        throw new Error("Missing X-Session-Key from backend response.");
+      }
+
+      // 后端已经解开自己那一层，response.data 现在是前端当初加密过的 .enc 文件
+      const encryptedArrayBuffer = await response.data.arrayBuffer();
+
+      // 前端再解开自己上传时加密的那一层
+      const decryptedBuffer = await decryptFrontendEncryptedFile(
+        encryptedArrayBuffer,
+        sessionKeyBase64
+      );
+
+      const blob = new Blob([decryptedBuffer]);
+      const url = window.URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+
+      // 去掉最后的 .enc，恢复原始文件名
+      link.download = file.name.endsWith(".enc")
+        ? file.name.slice(0, -4)
+        : file.name;
+
+      document.body.appendChild(link);
+      link.click();
+
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Frontend decryption/download failed:", error);
+      alert("Download or decryption failed. Please check console for details.");
+    }
+  };
   // Reusable table component for both sections
  const FileTable = ({ files, isMyFiles }: { files: FileItem[]; isMyFiles: boolean }) => (
     <div className="hidden md:block overflow-x-auto bg-slate-50 dark:bg-slate-900/10 transition-colors duration-300">
@@ -135,16 +212,16 @@ export function SecureFileExplorer() {
               </td>
               <td className="px-6 py-4 text-right">
                 {isMyFiles ? (
-                  <button className="p-2 hover:bg-emerald-50 dark:hover:bg-emerald-500/20 rounded-lg text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+                  <button  onClick={() => handleDownload(file)} className="p-2 hover:bg-emerald-50 dark:hover:bg-emerald-500/20 rounded-lg text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
                     <Download className="w-4 h-4" />
                   </button>
                 ) : (
                   file.accessible ? (
-                    <button className="p-2 hover:bg-cyan-50 dark:hover:bg-cyan-500/20 rounded-lg text-slate-400 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors">
+                    <button  onClick={() => handleDownload(file)} className="p-2 hover:bg-cyan-50 dark:hover:bg-cyan-500/20 rounded-lg text-slate-400 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors">
                       <Download className="w-4 h-4" />
                     </button>
                   ) : (
-                    <button className="p-2 hover:bg-yellow-50 dark:hover:bg-yellow-500/10 rounded-lg text-slate-400 hover:text-yellow-600 dark:hover:text-yellow-500 transition-colors">
+                    <button  onClick={() => handleDownload(file)} className="p-2 hover:bg-yellow-50 dark:hover:bg-yellow-500/10 rounded-lg text-slate-400 hover:text-yellow-600 dark:hover:text-yellow-500 transition-colors">
                       <AlertCircle className="w-4 h-4" />
                     </button>
                   )
@@ -192,7 +269,7 @@ export function SecureFileExplorer() {
                 <span className="text-slate-500 dark:text-slate-400">policy:</span>
                 <span className="text-emerald-600 dark:text-emerald-400">{file.policy}</span>
               </div>
-              <Button size="sm" className="w-full gap-2" variant={file.accessible ? "default" : "secondary"}>
+              <Button  size="sm" className="w-full gap-2" variant={file.accessible ? "default" : "secondary"}>
                 {isMyFiles ? (
                   <><Download className="w-4 h-4" /> manage sharing</>
                 ) : file.accessible ? (

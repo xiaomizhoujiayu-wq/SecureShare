@@ -78,3 +78,12 @@ export const uploadAndEncryptFile = async (file: File, selectedTags: string, bas
   const response = await api.post('/abe/encrypt-file', formData);
   return response.data;
 };
+
+
+export const downloadFile = async (fileId: string | number) => {
+  const response = await api.get(`/abe/download/${fileId}`, {
+    responseType: "blob",
+  });
+
+  return response;
+};
