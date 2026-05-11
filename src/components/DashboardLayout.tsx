@@ -16,10 +16,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const userRole = localStorage.getItem('user_role');
 
   const navItems = [
+    { label: "Home", icon: Home, href: "/home" },
     { label: "Upload & Encrypt", icon: Upload, href: "/dashboard" },
     { label: "File explorer", icon: Folder, href: "/explorer" },
     { label: "Profile", icon: User, href: "/profile" },
-    { label: "Home", icon: Home, href: "/home" },
   ];
   if (userRole === 'ADMIN') {
     navItems.push({ label: "Admin", icon: Settings, href: "/admin" });
