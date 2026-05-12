@@ -38,6 +38,7 @@ export function SecureFileExplorer() {
   const [fileToDelete, setFileToDelete] = useState<string | number | null>(null);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
   const userId = getUserId();
+  const [userUID, setUserUID] = useState("");
 
 
 
@@ -55,6 +56,12 @@ export function SecureFileExplorer() {
 
         setMyAttributes(businessAttributes);
 
+        const idAttribute = attrArray.find((attr: string) => attr.startsWith("ID:"));
+        
+        if (idAttribute) {
+          setUserUID(idAttribute.substring(3)); 
+        } 
+
         const rawFiles: BackendFileResponse[] = await getAllFiles(); 
         console.log("rawFiles:", rawFiles);
         const formattedFiles: FileItem[] = rawFiles.map((item: any) => {
@@ -68,7 +75,7 @@ export function SecureFileExplorer() {
             uploadDate: item.uploadTime 
               ? new Date(item.uploadTime).toLocaleDateString() 
               : "Unknown time", 
-            policy: isPrivate ? "Private Access" : (item.policy || "Public"), 
+            policy: isPrivate ? "Private Share" : (item.policy || "Public"), 
             size: "-- MB",
             accessible: item.accessible ?? true, 
             policyDetails: item.policy || "No details provided"      
@@ -94,28 +101,41 @@ export function SecureFileExplorer() {
   }, [myAttributes]);
   //files shared with me 
   const sharedWithMeFiles = useMemo(() => {
-    if (!userId) return [];
+    if (!userId || !userUID) return [];
 
-    return allFiles.filter(file => {
-      // file owner is not me
-  const isNotMine = String(file.ownerId) !== String(userId);
-  
-  //attribute match policy
-  const policyArray = Array.isArray(file.policy) ? file.policy : [file.policy];
-  const fileLevelAttr = policyArray.find(p => p.startsWith("Level:"));
+  return allFiles.filter(file => {
+    // 1. not my file 
+    const isNotMine = String(file.ownerId) !== String(userId);
+    if (!isNotMine) return false;
+
+    // 
+    const rawPolicy = file.policyDetails; 
+    
+    // 
+    let policyArray: string[] = [];
+    if (typeof rawPolicy === "string" && rawPolicy !== "No details provided") {
+        policyArray = rawPolicy.split(",");
+    } else if (Array.isArray(rawPolicy)) {
+        policyArray = rawPolicy;
+    }
+
+    // 2. level base 
+    const fileLevelAttr = policyArray.find(p => p.startsWith("Level:"));
+    let hasLevelAccess = false;
     if (fileLevelAttr) {
-          const requiredLevel = parseInt(fileLevelAttr.split(":")[1], 10);
-          
-          
-          // only numbers less than setlevel can access
-          const hasLevelAccess = myLevel <= requiredLevel;
-          
-          if (!hasLevelAccess) return false;
-        }
-    const canAccess = policyArray.some(p => myAttributes.includes(p));
-      return fileLevelAttr ? (myLevel <= parseInt(fileLevelAttr.split(":")[1])) : canAccess;
+      const requiredLevel = parseInt(fileLevelAttr.split(":")[1], 10);
+      hasLevelAccess = myLevel <= requiredLevel;
+    }
+
+    // 3. private share 
+    const isDirectlySharedWithMe = policyArray.includes(`ID:${userUID}`);
+
+    // 4. attribute base 
+    const hasAttributeMatch = policyArray.some(p => myAttributes.includes(p));
+
+    return isDirectlySharedWithMe || hasLevelAccess || hasAttributeMatch;
     });
-  }, [allFiles, userId, myAttributes,myLevel]);
+  }, [allFiles, userId, myAttributes, myLevel]);
  
   //files that I upload
   const myUploadedFiles = useMemo(() => {
@@ -123,7 +143,6 @@ export function SecureFileExplorer() {
     return allFiles.filter(file => String(file.ownerId) === String(userId));
   }, [allFiles, userId]);
  
-
 
 
   const handleDelete = async (fileId: string) => {

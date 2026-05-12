@@ -199,7 +199,7 @@ export function EncryptionWizard() {
       // Use the real backend attribute string directly.
       // Example: "it" stays "it", not "Role:it".
       selectedTags = selectedAttributes.map((a) => a.rawTag).join(",");
-    } else {
+    } else if(sharingMode ==="private") {
       selectedTags = `ID:${targetUid}`;
     }
 
@@ -604,13 +604,29 @@ export function EncryptionWizard() {
                             }
 
                             setTargetUid(val);
-                            setCurrentStep(3);
-                            setExpandedStep(3);
+                            
                           }}
+                          onKeyDown={(e) => {
+                              if (e.key === 'Enter' && targetUid) {
+                                setCurrentStep(3);
+                                setExpandedStep(3);
+                              }
+                            }}
                           autoComplete="new-password"
                           className="w-full pl-8 sm:pl-10 pr-3 py-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700/50 text-slate-900 dark:text-white text-xs sm:text-sm focus:outline-none focus:border-emerald-500/50"
                         />
                       </div>
+                        <button
+                          onClick={() => {
+                            if(targetUid) {
+                              setCurrentStep(3);
+                              setExpandedStep(3);
+                            }
+                          }}
+                          className="px-4 py-2 bg-emerald-500 text-white rounded-lg text-xs font-semibold hover:bg-emerald-600 transition-colors"
+                        >
+                          Confirm
+                        </button>
                     </div>
                   </div>
                 )}
