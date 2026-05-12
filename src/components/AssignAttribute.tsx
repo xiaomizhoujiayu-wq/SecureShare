@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { 
   Plus, ShieldCheck, Users, Tag, X, Check, AlertCircle, Loader2, 
   Edit2, Trash2, ChevronDown, Search, Filter, ShieldPlus
@@ -18,6 +18,8 @@ interface Attribute {
   name: string;
   description?: string;
 }
+
+const baseUrl = "http://localhost:8080/abe";
 
 export function AdminPanel() {
 
@@ -42,19 +44,9 @@ export function AdminPanel() {
   const [isCreating, setIsCreating] = useState(false);
   const [newSubAdmin, setNewSubAdmin] = useState({ username: "", email: "", password: "" });
 
-  const baseUrl = "http://localhost:8080/abe";
   const token = localStorage.getItem("auth_token");
 
-  useEffect(() => {
-    if (!token) {
-      window.location.href = "/signin";
-      return;
-    }
-    fetchUsers();
-    fetchCatalog();
-  }, [token]); // ✅ FIX: Added token to dependency array
-
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -70,9 +62,9 @@ export function AdminPanel() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
-  const fetchCatalog = async () => {
+  const fetchCatalog = useCallback(async () => {
     try {
       const res = await fetch(`${baseUrl}/attributes`, {
         headers: { "Authorization": `Bearer ${token}` }
@@ -83,7 +75,16 @@ export function AdminPanel() {
     } catch (err) {
       console.error("Failed to fetch catalog:", err);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    if (!token) {
+      window.location.href = "/signin";
+      return;
+    }
+    fetchUsers();
+    fetchCatalog();
+  }, [fetchUsers, fetchCatalog, token]);
 
   const addToCatalog = async () => {
     if (!newCatalogAttr.trim()) {
