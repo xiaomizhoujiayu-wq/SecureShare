@@ -1,10 +1,9 @@
 import { useState, useEffect, useMemo } from "react";
 import { 
   FileText, Shield, Lock, Download, Trash2,
-  AlertCircle, ChevronDown, FolderDown, Loader2, Upload
+  AlertCircle, ChevronDown, FolderDown, Loader2, Upload, CheckCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-// import { getMyAttributes, getAllFiles } from "@/lib/api";
 import { getMyAttributes, getAllFiles, downloadFile } from "@/lib/api";
 
 interface BackendFileResponse {
@@ -27,20 +26,22 @@ interface FileItem {
   accessible: boolean;
   policyDetails: string;
 }
-const getUserId = () => localStorage.getItem("user_id") || "";
+
 export function SecureFileExplorer() {
   const [allFiles, setAllFiles] = useState<FileItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [userId, setUserId] = useState<string | number | null>(null);
+  const [userUID, setUserUID] = useState<string | null>(null);
+  const [myAttributes, setMyAttributes] = useState<string[]>([]);
+  const [myLevel, setMyLevel] = useState<number>(5);
+
   const [expandedFile, setExpandedFile] = useState<string | null>(null);
   const [expandedMyFile, setExpandedMyFile] = useState<string | null>(null);
-  const [myAttributes, setMyAttributes] = useState<string[]>([]);
+
+  // For deletion
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [fileToDelete, setFileToDelete] = useState<string | number | null>(null);
+  const [fileToDelete, setFileToDelete] = useState<string | null>(null);
   const [showSuccessToast, setShowSuccessToast] = useState(false);
-  const userId = getUserId();
-  const [userUID, setUserUID] = useState("");
-
-
 
   useEffect(() => {
     const initData = async () => {
@@ -49,21 +50,22 @@ export function SecureFileExplorer() {
         const attrData = await getMyAttributes();
         const rawAttrString = attrData.attributes || ""; 
         const attrArray = rawAttrString.trim() ? rawAttrString.split(',') : [];
-
-        const businessAttributes = attrArray.filter(
-          (attr: string) => !attr.startsWith("ID:")
-        );
-
-        setMyAttributes(businessAttributes);
+        setMyAttributes(attrArray);
 
         const idAttribute = attrArray.find((attr: string) => attr.startsWith("ID:"));
+        const uid = idAttribute ? idAttribute.substring(3) : null;
+        setUserUID(uid);
         
-        if (idAttribute) {
-          setUserUID(idAttribute.substring(3)); 
-        } 
+        const myId = attrData.userId || (idAttribute ? idAttribute.substring(3) : null);
+        setUserId(myId);
+
+        // Level parsing
+        const levelAttr = attrArray.find((a: string) => a.startsWith("Level:"));
+        if (levelAttr) {
+          setMyLevel(parseInt(levelAttr.split(":")[1], 10));
+        }
 
         const rawFiles: BackendFileResponse[] = await getAllFiles(); 
-        console.log("rawFiles:", rawFiles);
         const formattedFiles: FileItem[] = rawFiles.map((item: BackendFileResponse) => {
           const isPrivate = item.policy && item.policy.startsWith("ID:");
           
@@ -75,7 +77,7 @@ export function SecureFileExplorer() {
             uploadDate: item.upload_time 
               ? new Date(item.upload_time).toLocaleDateString() 
               : "Unknown time", 
-            policy: isPrivate ? "Private Share" : (item.policy || "Public"), 
+            policy: isPrivate ? "Private Access" : (item.policy || "Public"), 
             size: "-- MB",
             accessible: item.accessible ?? true, 
             policyDetails: item.policy || "No details provided"      
@@ -92,58 +94,48 @@ export function SecureFileExplorer() {
     
     initData();
   }, []);
-  const myLevel = useMemo(() => {
-  const levelAttr = myAttributes.find(attr => attr.startsWith("Level:"));
-    if (levelAttr) {
-      return parseInt(levelAttr.split(":")[1], 10);
-    }
-    return 5; // if didn't set level, set the default level into 5
-  }, [myAttributes]);
-  //files shared with me 
+
+  // Files shared with me logic from HEAD
   const sharedWithMeFiles = useMemo(() => {
     if (!userId || !userUID) return [];
 
-  return allFiles.filter(file => {
-    // 1. not my file 
-    const isNotMine = String(file.ownerId) !== String(userId);
-    if (!isNotMine) return false;
+    return allFiles.filter(file => {
+      // 1. not my file 
+      const isNotMine = String(file.ownerId) !== String(userId);
+      if (!isNotMine) return false;
 
-    // 
-    const rawPolicy = file.policyDetails; 
-    
-    // 
-    let policyArray: string[] = [];
-    if (typeof rawPolicy === "string" && rawPolicy !== "No details provided") {
-        policyArray = rawPolicy.split(",");
-    } else if (Array.isArray(rawPolicy)) {
-        policyArray = rawPolicy;
-    }
+      // Policy parsing
+      const rawPolicy = file.policyDetails; 
+      let policyArray: string[] = [];
+      if (typeof rawPolicy === "string" && rawPolicy !== "No details provided") {
+          policyArray = rawPolicy.split(",");
+      } else if (Array.isArray(rawPolicy)) {
+          policyArray = rawPolicy;
+      }
 
-    // 2. level base 
-    const fileLevelAttr = policyArray.find(p => p.startsWith("Level:"));
-    let hasLevelAccess = false;
-    if (fileLevelAttr) {
-      const requiredLevel = parseInt(fileLevelAttr.split(":")[1], 10);
-      hasLevelAccess = myLevel <= requiredLevel;
-    }
+      // 2. level base 
+      const fileLevelAttr = policyArray.find(p => p.startsWith("Level:"));
+      let hasLevelAccess = false;
+      if (fileLevelAttr) {
+        const requiredLevel = parseInt(fileLevelAttr.split(":")[1], 10);
+        hasLevelAccess = myLevel <= requiredLevel;
+      }
 
-    // 3. private share 
-    const isDirectlySharedWithMe = policyArray.includes(`ID:${userUID}`);
+      // 3. private share 
+      const isDirectlySharedWithMe = policyArray.includes(`ID:${userUID}`);
 
-    // 4. attribute base 
-    const hasAttributeMatch = policyArray.some(p => myAttributes.includes(p));
+      // 4. attribute base 
+      const hasAttributeMatch = policyArray.some(p => myAttributes.includes(p));
 
-    return isDirectlySharedWithMe || hasLevelAccess || hasAttributeMatch;
+      return isDirectlySharedWithMe || hasLevelAccess || hasAttributeMatch;
     });
   }, [allFiles, userId, userUID, myAttributes, myLevel]);
- 
-  //files that I upload
+
+  // Files that I upload
   const myUploadedFiles = useMemo(() => {
     if (!userId) return [];
     return allFiles.filter(file => String(file.ownerId) === String(userId));
   }, [allFiles, userId]);
- 
-
 
   const handleDelete = async (fileId: string) => {
     setFileToDelete(fileId);
@@ -157,8 +149,8 @@ export function SecureFileExplorer() {
       setFileToDelete(null);
       setShowSuccessToast(true);
       setTimeout(() => {
-      setShowSuccessToast(false);
-          }, 3000);     
+        setShowSuccessToast(false);
+      }, 3000);     
     }
   };
 
@@ -172,13 +164,8 @@ export function SecureFileExplorer() {
     base64Key: string
   ): Promise<ArrayBuffer> => {
     const encryptedBytes = new Uint8Array(encryptedBuffer);
-
-    // 上传时前 12 字节保存的是 IV
     const iv = encryptedBytes.slice(0, 12);
-
-    // 后面的内容才是真正的密文
     const ciphertext = encryptedBytes.slice(12);
-
     const rawKeyBytes = base64ToBytes(base64Key);
 
     const cryptoKey = await window.crypto.subtle.importKey(
@@ -196,23 +183,16 @@ export function SecureFileExplorer() {
     );
   };
 
-
-
   const handleDownload = async (file: FileItem) => {
     try {
       const response = await downloadFile(file.id);
-
-      // 后端返回给前端的 AES key
       const sessionKeyBase64 = response.headers["x-session-key"];
 
       if (!sessionKeyBase64) {
         throw new Error("Missing X-Session-Key from backend response.");
       }
 
-      // 后端已经解开自己那一层，response.data 现在是前端当初加密过的 .enc 文件
       const encryptedArrayBuffer = await response.data.arrayBuffer();
-
-      // 前端再解开自己上传时加密的那一层
       const decryptedBuffer = await decryptFrontendEncryptedFile(
         encryptedArrayBuffer,
         sessionKeyBase64
@@ -220,18 +200,14 @@ export function SecureFileExplorer() {
 
       const blob = new Blob([decryptedBuffer]);
       const url = window.URL.createObjectURL(blob);
-
       const link = document.createElement("a");
       link.href = url;
-
-      // 去掉最后的 .enc，恢复原始文件名
       link.download = file.name.endsWith(".enc")
         ? file.name.slice(0, -4)
         : file.name;
 
       document.body.appendChild(link);
       link.click();
-
       link.remove();
       window.URL.revokeObjectURL(url);
     } catch (error) {
@@ -239,16 +215,18 @@ export function SecureFileExplorer() {
       alert("Download or decryption failed. Please check console for details.");
     }
   };
-  // Reusable table component for both sections
- const FileTable = ({ files, isMyFiles }: { files: FileItem[]; isMyFiles: boolean }) => (
+
+  // Reusable table component
+  const FileTable = ({ files, isMyFiles }: { files: FileItem[]; isMyFiles: boolean }) => (
     <div className="hidden md:block overflow-x-auto bg-slate-50 dark:bg-slate-900/10 transition-colors duration-300">
       <table className="w-full">
         <thead>
           <tr className="border-b border-slate-200 dark:border-slate-700/50 bg-slate-100 dark:bg-slate-900/50 transition-colors duration-300">
             <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 dark:text-slate-300">File name</th>
+            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 dark:text-slate-300">owner</th>
             <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 dark:text-slate-300">policy</th>
             <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 dark:text-slate-300">accessibility</th>
-            <th className="px-6 py-4 text-right text-xs font-semibold text-slate-600 dark:text-slate-300 w-28">action</th>
+            <th className="px-6 py-4 text-right text-xs font-semibold text-slate-600 dark:text-slate-300">action</th>
           </tr>
         </thead>
         <tbody>
@@ -263,6 +241,7 @@ export function SecureFileExplorer() {
                   </div>
                 </div>
               </td>
+              <td className="px-6 py-4 text-sm text-slate-700 dark:text-slate-300">{file.ownerName}</td>
               <td className="px-6 py-4">
                 <div className="inline-flex items-center gap-2 px-2 py-1 rounded-md bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 transition-colors" title={file.policyDetails}>
                   <Shield className={`w-3 h-3 ${file.accessible ? "text-emerald-500 dark:text-emerald-400" : "text-slate-400 dark:text-slate-500"}`} />
@@ -281,23 +260,38 @@ export function SecureFileExplorer() {
                 )}
               </td>
               <td className="px-6 py-4 text-right">
-                <div className="flex items-center justify-end gap-2"></div>
-                <button 
-                      onClick={() => handleDownload(file)} 
-                      className="p-2 hover:bg-emerald-50 dark:hover:bg-emerald-500/20 rounded-lg text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
-                      title="Download"
-                    >
-                      <Download className="w-4 h-4" />
-                </button>
-                <button 
-                      onClick={() => handleDelete(file.id)} 
-                      className="p-2 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
-                      title="Delete"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                <div className="flex justify-end gap-2">
+                  {isMyFiles ? (
+                    <>
+                      <button 
+                        onClick={() => handleDownload(file)}
+                        className="p-2 hover:bg-emerald-50 dark:hover:bg-emerald-500/20 rounded-lg text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
+                      >
+                        <Download className="w-4 h-4" />
+                      </button>
+                      <button 
+                        onClick={() => handleDelete(file.id)}
+                        className="p-2 hover:bg-red-50 dark:hover:bg-red-500/20 rounded-lg text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </>
+                  ) : (
+                    file.accessible ? (
+                      <button 
+                        onClick={() => handleDownload(file)}
+                        className="p-2 hover:bg-cyan-50 dark:hover:bg-cyan-500/20 rounded-lg text-slate-400 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors"
+                      >
+                        <Download className="w-4 h-4" />
+                      </button>
+                    ) : (
+                      <button className="p-2 hover:bg-yellow-50 dark:hover:bg-yellow-500/10 rounded-lg text-slate-400 hover:text-yellow-600 dark:hover:text-yellow-500 transition-colors">
+                        <AlertCircle className="w-4 h-4" />
+                      </button>
+                    )
+                  )}
+                </div>
               </td>
-
             </tr>
           ))}
         </tbody>
@@ -305,7 +299,6 @@ export function SecureFileExplorer() {
     </div>
   );
 
-  // Reusable mobile card component
   const MobileFileCards = ({ files, isMyFiles }: { files: FileItem[]; isMyFiles: boolean }) => (
     <div className="md:hidden divide-y divide-slate-200 dark:divide-slate-700/50 bg-slate-50 dark:bg-slate-900/10 transition-colors duration-300">
       {files.map((file) => (
@@ -340,15 +333,32 @@ export function SecureFileExplorer() {
                 <span className="text-slate-500 dark:text-slate-400">policy:</span>
                 <span className="text-emerald-600 dark:text-emerald-400">{file.policy}</span>
               </div>
-              <Button  size="sm" className="w-full gap-2" variant={file.accessible ? "default" : "secondary"}>
-                {isMyFiles ? (
-                  <><Download className="w-4 h-4" /> manage sharing</>
-                ) : file.accessible ? (
-                  <><Download className="w-4 h-4" /> download file</>
-                ) : (
-                  <><AlertCircle className="w-4 h-4" /> access</>
+              <div className="flex gap-2">
+                <Button 
+                  size="sm" 
+                  className="flex-1 gap-2" 
+                  variant={file.accessible ? "default" : "secondary"}
+                  onClick={() => file.accessible && handleDownload(file)}
+                >
+                  {isMyFiles ? (
+                    <><Download className="w-4 h-4" /> download</>
+                  ) : file.accessible ? (
+                    <><Download className="w-4 h-4" /> download</>
+                  ) : (
+                    <><AlertCircle className="w-4 h-4" /> access</>
+                  )}
+                </Button>
+                {isMyFiles && (
+                  <Button 
+                    size="sm" 
+                    variant="destructive" 
+                    className="px-3"
+                    onClick={() => handleDelete(file.id)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
                 )}
-              </Button>
+              </div>
             </div>
           )}
         </div>
@@ -358,7 +368,7 @@ export function SecureFileExplorer() {
 
   return (
     <div className="space-y-6">
-      {/* SECTION 1: Shared With Me (Files others shared with me) */}
+      {/* SECTION 1: Shared With Me */}
       <div className="bg-white dark:bg-slate-900/40 backdrop-blur-md rounded-xl border border-slate-200 dark:border-slate-700/50 overflow-hidden shadow-sm dark:shadow-xl transition-colors duration-300">
         <div className="p-4 sm:p-6 border-b border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-900/20 transition-colors duration-300">
           <div className="flex items-center gap-3 mb-1">
@@ -388,7 +398,7 @@ export function SecureFileExplorer() {
         )}
       </div>
 
-      {/* SECTION 2: My Shared Files (Files I uploaded) */}
+      {/* SECTION 2: My Shared Files */}
       <div className="bg-white dark:bg-slate-900/40 backdrop-blur-md rounded-xl border border-slate-200 dark:border-slate-700/50 overflow-hidden shadow-sm dark:shadow-xl transition-colors duration-300">
         <div className="p-4 sm:p-6 border-b border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-900/20 transition-colors duration-300">
           <div className="flex items-center gap-3 mb-1">
@@ -418,49 +428,41 @@ export function SecureFileExplorer() {
         )}
       </div>
 
+      {/* Delete Confirmation Modal */}
       {isDeleteModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-sm overflow-hidden transform transition-all border border-slate-200 dark:border-slate-700">
-            <div className="p-6">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="p-3 bg-red-100 dark:bg-red-500/10 rounded-full text-red-600">
-                  <Trash2 className="w-6 h-6" />
-                </div>
-                <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Delete File</h3>
-              </div>
-              <p className="text-slate-500 dark:text-slate-400">
-                Are you sure you want to delete this file?
-              </p>
-            </div>
-
-            <div className="bg-slate-50 dark:bg-slate-900/50 px-6 py-4 flex flex-col-reverse sm:flex-row justify-end gap-3">
-              <button 
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-700 shadow-xl max-w-sm w-full mx-4">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">Delete File?</h3>
+            <p className="text-slate-500 dark:text-slate-400 text-sm mb-6">
+              Are you sure you want to delete this file? This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <Button 
+                variant="outline" 
+                className="flex-1"
                 onClick={() => setIsDeleteModalOpen(false)}
-                className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-lg transition-colors"
               >
                 Cancel
-              </button>
-              <button 
+              </Button>
+              <Button 
+                variant="destructive" 
+                className="flex-1"
                 onClick={confirmDelete}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-sm transition-colors"
               >
                 Delete
-              </button>
+              </Button>
             </div>
           </div>
         </div>
       )}
 
       {/* Success Toast */}
-      <div className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-[60] transition-all duration-500 transform ${showSuccessToast ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0 pointer-events-none'}`}>
-        <div className="bg-emerald-600 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3">
-          <div className="bg-white/20 rounded-full p-1">
-            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-          <span className="font-medium">File deleted successfully!</span>
+      {showSuccessToast && (
+        <div className="fixed bottom-6 right-6 z-50 bg-emerald-600 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4 transition-all duration-300">
+          <CheckCircle className="w-5 h-5" />
+          <span className="font-medium">File deleted successfully</span>
         </div>
-      </div>
+      )}
     </div>
-  );}
+  );
+}

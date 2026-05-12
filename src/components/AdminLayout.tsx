@@ -29,8 +29,8 @@ export function AdminLayout({ children }: DashboardLayoutProps) {
     localStorage.removeItem("username");
     localStorage.removeItem("user_role");
     localStorage.removeItem("user_id");
-    navigate("/");
-  };
+    navigate("/"); 
+  };   
 
   return (
     <div className="flex h-screen bg-background text-foreground overflow-hidden transition-colors duration-300">
@@ -58,7 +58,7 @@ export function AdminLayout({ children }: DashboardLayoutProps) {
         </div>
 
         {/* Logo Section */}
-        <div className="p-6 border-b border-slate-200 dark:border-slate-700/50 cursor-pointer" onClick={handleLogout}>
+        <div className="p-6 border-b border-slate-200 dark:border-slate-700/50 cursor-pointer" onClick={() => navigate("/admin")}>
           <div className="flex items-center gap-3">
               <SecureShareLogo className="w-9 h-9 drop-shadow-sm"/>
             <div>

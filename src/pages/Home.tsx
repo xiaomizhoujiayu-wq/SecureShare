@@ -26,7 +26,7 @@ export default function Home() {
       {/* Navigation Section */} 
       <nav className="fixed top-0 left-0 right-0 z-50 flex justify-between items-center px-6 py-1.5 sm:px-10 sm:py-3 bg-white/80 dark:bg-slate-950/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800/50 transition-colors duration-300"> 
         {/* Logo */} 
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate("/")}>
           <SecureShareLogo className="w-9 h-9 drop-shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
           <div>
             <h1 className="font-display text-xl tracking-tight text-slate-900 dark:text-white">
@@ -101,6 +101,7 @@ export default function Home() {
               variant="outline" 
               size="lg" 
               className="border-emerald-300 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 px-6 sm:px-8 py-4 sm:py-6 text-sm sm:text-lg rounded-xl transition-all hover:scale-105 active:scale-95" 
+              onClick={() => window.open("https://github.com/xiaomizhoujiayu-wq/SecureShare-web", "_blank")}
             > 
               Start on Github 
             </Button> 

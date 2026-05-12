@@ -3,6 +3,12 @@
 @tailwind utilities;
 
 :root {
+  /* Theme Variables */
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  
   --primary: #10b981;
   --primary-foreground: #f0fdf4;
   --sidebar-primary: #10b981;
@@ -74,145 +80,43 @@
 }
 
 @layer base {
-  :root {
-    --background: 0 0% 100%; 
-    --foreground: 222.2 47.4% 11.2%; 
-    --primary: 160 84% 39%; 
-    --border: 214.3 31.8% 91.4%; 
-    --muted: 210 40% 96.1%;
-  }
-
-  .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --primary: 142.1 76.2% 36.3%;
-    --muted: 217.2 32.6% 17.5%;
-  }
   * {
     @apply border-border;
-    outline: 1px solid hsl(var(--ring) / 0.5);
   }
   body {
     @apply bg-background text-foreground;
   }
-  button:not(:disabled),
-  [role="button"]:not([aria-disabled="true"]),
-  [type="button"]:not(:disabled),
-  [type="submit"]:not(:disabled),
-  [type="reset"]:not(:disabled),
-  a[href],
-  select:not(:disabled),
-  input[type="checkbox"]:not(:disabled),
-  input[type="radio"]:not(:disabled) {
-    @apply cursor-pointer;
-  }
 }
 
 @layer components {
-  /**
-   * Custom container utility that centers content and adds responsive padding.
-   *
-   * This overrides Tailwind's default container behavior to:
-   * - Auto-center content (mx-auto)
-   * - Add responsive horizontal padding
-   * - Set max-width for large screens
-   *
-   * Usage: <div className="container">...</div>
-   *
-   * For custom widths, use max-w-* utilities directly:
-   * <div className="max-w-6xl mx-auto px-4">...</div>
-   */
   .container {
     width: 100%;
     margin-left: auto;
     margin-right: auto;
-    padding-left: 1rem; /* 16px - mobile padding */
+    padding-left: 1rem;
     padding-right: 1rem;
-  }
-
-  .flex {
-    min-height: 0;
-    min-width: 0;
   }
 
   @media (min-width: 640px) {
     .container {
-      padding-left: 1.5rem; /* 24px - tablet padding */
+      padding-left: 1.5rem;
       padding-right: 1.5rem;
     }
   }
 
   @media (min-width: 1024px) {
     .container {
-      padding-left: 2rem; /* 32px - desktop padding */
+      padding-left: 2rem;
       padding-right: 2rem;
-      max-width: 1280px; /* Standard content width */
+      max-width: 1280px;
     }
   }
 }
-/* Typography System - Modern Gradient Elegance */
+
 .font-display {
   font-family: 'Sora', sans-serif;
   font-weight: 700;
   letter-spacing: -0.02em;
-}
-
-.font-body {
-  font-family: 'Inter', sans-serif;
-  font-weight: 400;
-}
-
-/* Glassmorphism Effect */
-.glass {
-  background: rgba(26, 40, 71, 0.7);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(16, 185, 129, 0.1);
-}
-
-.glass-strong {
-  background: rgba(10, 14, 39, 0.8);
-  backdrop-filter: blur(16px);
-  border: 1px solid rgba(16, 185, 129, 0.15);
-}
-
-/* Gradient Backgrounds */
-.gradient-primary {
-  background: linear-gradient(135deg, #0f172a 0%, #0d3b66 50%, #1a3a52 100%);
-}
-
-.gradient-accent {
-  background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
-}
-
-/* Smooth Transitions */
-.transition-smooth {
-  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-/* Hover Effects */
-.hover-lift {
-  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-}
-
-.hover-lift:hover {
-  box-shadow: 0 20px 40px rgba(16, 185, 129, 0.2);
-  transform: translateY(-4px);
-}
-
-/* Glow Effect */
-.glow-emerald {
-  box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
-}
-
-.glow-emerald-hover:hover {
-  box-shadow: 0 0 30px rgba(16, 185, 129, 0.5);
-}
-
-/* Animated gradient text */
-@keyframes gradient-shift {
-  0%, 100% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
 }
 
 .gradient-text {
@@ -224,86 +128,16 @@
   animation: gradient-shift 3s ease infinite;
 }
 
-
-/* Enhanced Animations */
-@keyframes fade-in-up {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slide-in-left {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes pulse-glow {
-  0%, 100% {
-    box-shadow: 0 0 20px rgba(16, 185, 129, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 40px rgba(16, 185, 129, 0.6);
-  }
-}
-
-.animate-fade-in-up {
-  animation: fade-in-up 0.6s ease-out;
-}
-
-.animate-slide-in-left {
-  animation: slide-in-left 0.6s ease-out;
-}
-
-.animate-pulse-glow {
-  animation: pulse-glow 2s ease-in-out infinite;
-}
-
-/* Scrollbar Styling */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: rgba(16, 185, 129, 0.3);
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(16, 185, 129, 0.5);
-}
-
-/* Focus Styles */
-:focus-visible {
-  outline: 2px solid #10b981;
-  outline-offset: 2px;
-}
-
-/* Smooth Page Transitions */
-@keyframes page-fade-in {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+@keyframes gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
 }
 
 main {
   animation: page-fade-in 0.3s ease-out;
+}
+
+@keyframes page-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }

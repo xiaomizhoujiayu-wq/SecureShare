@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-    baseURL:'http://localhost:8080',
+    baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080',
 });
 
 api.interceptors.request.use((config) => {
@@ -77,13 +77,4 @@ export const uploadAndEncryptFile = async (file: File, selectedTags: string, bas
   formData.append('key', base64Key);
   const response = await api.post('/abe/encrypt-file', formData);
   return response.data;
-};
-
-
-export const downloadFile = async (fileId: string | number) => {
-  const response = await api.get(`/abe/download/${fileId}`, {
-    responseType: "blob",
-  });
-
-  return response;
 };
