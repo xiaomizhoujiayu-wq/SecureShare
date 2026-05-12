@@ -1,4 +1,4 @@
-import { Shield, CheckCircle, AlertCircle, Copy, Loader2 } from "lucide-react";
+import { Shield, CheckCircle, Copy, Loader2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { getMyAttributes } from "@/lib/api";
 

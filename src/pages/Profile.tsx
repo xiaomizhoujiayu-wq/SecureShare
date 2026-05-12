@@ -1,6 +1,5 @@
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { IdentityStatus } from "@/components/IdentityStatus";
-import { AttributeMarketplace } from "@/components/Attribute";
 
 
 export default function Profile() {

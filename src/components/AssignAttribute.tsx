@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { 
-  Plus, ShieldCheck, Users, Tag, X, Check, AlertCircle, Loader2, 
-  Edit2, Trash2, ChevronDown, Search, Filter, ShieldPlus
+  Plus, Tag, X, Check, AlertCircle, Loader2, 
+  Edit2, Search, Filter
 } from "lucide-react";
 
 
@@ -52,6 +52,7 @@ export function AdminPanel() {
     }
     fetchUsers();
     fetchCatalog();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]); // ✅ FIX: Added token to dependency array
 
   const fetchUsers = async () => {

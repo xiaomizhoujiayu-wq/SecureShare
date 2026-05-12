@@ -1,6 +1,5 @@
 import { useLocation } from "wouter";
-import { LogOut, FileText, BarChart3, User, Settings, Folder, Home, Menu, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Folder, Home, Menu, X, User } from "lucide-react";
 import { useState } from "react";
 import ThemeToggle from "@/components/ThemeTogglle"; 
 import {SecureShareLogo} from "@/components/logo";
@@ -23,6 +22,15 @@ export function AdminLayout({ children }: DashboardLayoutProps) {
   const isActive = (href: string) => location === href;
 
   const closeSidebar = () => setSidebarOpen(false);
+
+  const handleLogout = () => {
+    localStorage.removeItem("auth_token");
+    localStorage.removeItem("user_attributes");
+    localStorage.removeItem("username");
+    localStorage.removeItem("user_role");
+    localStorage.removeItem("user_id");
+    navigate("/");
+  };
 
   return (
     <div className="flex h-screen bg-background text-foreground overflow-hidden transition-colors duration-300">

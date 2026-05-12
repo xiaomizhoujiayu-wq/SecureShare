@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { 
-  FileText, Shield, Lock, Download, Share2, Trash2,
+  FileText, Shield, Lock, Download, Trash2,
   AlertCircle, ChevronDown, FolderDown, Loader2, Upload
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -64,16 +64,16 @@ export function SecureFileExplorer() {
 
         const rawFiles: BackendFileResponse[] = await getAllFiles(); 
         console.log("rawFiles:", rawFiles);
-        const formattedFiles: FileItem[] = rawFiles.map((item: any) => {
+        const formattedFiles: FileItem[] = rawFiles.map((item: BackendFileResponse) => {
           const isPrivate = item.policy && item.policy.startsWith("ID:");
           
           return {
             id: String(item.id),
             name: item.filename,                  
-            ownerId: item.ownerId,
-            ownerName: `User ${item.ownerId}`,   
-            uploadDate: item.uploadTime 
-              ? new Date(item.uploadTime).toLocaleDateString() 
+            ownerId: item.owner_id,
+            ownerName: `User ${item.owner_id}`,   
+            uploadDate: item.upload_time 
+              ? new Date(item.upload_time).toLocaleDateString() 
               : "Unknown time", 
             policy: isPrivate ? "Private Share" : (item.policy || "Public"), 
             size: "-- MB",
@@ -135,7 +135,7 @@ export function SecureFileExplorer() {
 
     return isDirectlySharedWithMe || hasLevelAccess || hasAttributeMatch;
     });
-  }, [allFiles, userId, myAttributes, myLevel]);
+  }, [allFiles, userId, userUID, myAttributes, myLevel]);
  
   //files that I upload
   const myUploadedFiles = useMemo(() => {
@@ -183,7 +183,7 @@ export function SecureFileExplorer() {
 
     const cryptoKey = await window.crypto.subtle.importKey(
       "raw",
-      rawKeyBytes,
+      rawKeyBytes as BufferSource,
       { name: "AES-GCM" },
       false,
       ["decrypt"]

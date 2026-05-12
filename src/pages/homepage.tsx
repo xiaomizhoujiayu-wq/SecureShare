@@ -9,11 +9,8 @@ import {
   FileText,
   Folder,
   Lock,
-  RefreshCw,
-  Search,
   Shield,
   ShieldCheck,
-  Upload,
   User,
   Users,
 } from "lucide-react";
@@ -199,7 +196,7 @@ export default function Homepage() {
   const [myAttributes, setMyAttributes] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [query, setQuery] = useState("");
+  const query = "";
 
   const username = getUsername();
   const userRole = getUserRole();

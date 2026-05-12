@@ -18,7 +18,7 @@ export const loginUser = async (email: string, password: string) => {
   return response.data;
 };
 
-export const registerUser=async (payload:any) => {
+export const registerUser=async (payload: Record<string, unknown>) => {
   
   const response = await api.post('/abe/register', { payload });
   return response.data;

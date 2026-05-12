@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { 
-  Plus, Users, Tag, X, Check, AlertCircle, Loader2, 
-  Edit2, Trash2, ChevronDown
+  Users, X, Check, AlertCircle, Loader2, 
+  Edit2
 } from "lucide-react";
 
 interface User {
@@ -11,40 +11,22 @@ interface User {
   attributes: string;
 }
 
-interface Attribute {
-  id?: number;
-  name: string;
-  description?: string;
-}
-
 export function SubAdminPanel() {
   // 
   const [users, setUsers] = useState<User[]>([]);
-  const [catalog, setCatalog] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [newAttributes, setNewAttributes] = useState("");
-  const [newCatalogAttr, setNewCatalogAttr] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
 
   const baseUrl = "http://localhost:8080/abe";
   const token = localStorage.getItem("auth_token");
 
   
-  useEffect(() => {
-    if (!token) {
-      window.location.href = "/signin";
-      return;
-    }
-    fetchUsers();
-    fetchCatalog();
-  }, []);
-
   // 
-  const fetchUsers = async () => {
+  const fetchUsers = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -58,66 +40,18 @@ export function SubAdminPanel() {
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to load users. Are you admin?";
       setError(message);
-      console.error(message);
     } finally {
       setLoading(false);
     }
-  };
+  }, [token, baseUrl]);
 
-  // 
-  const fetchCatalog = async () => {
-    try {
-      const res = await fetch(`${baseUrl}/attributes`, {
-        headers: { "Authorization": `Bearer ${token}` }
-      });
-      if (!res.ok) throw new Error("Failed to fetch catalog");
-      const data = await res.json();
-      
-      setCatalog(data.map((item: Attribute) => item.name));
-    } catch (err) {
-      console.error("Failed to fetch catalog:", err);
-    }
-  };
-
-  // 
-  const addToCatalog = async () => {
-    if (!newCatalogAttr.trim()) {
-      setError("Please enter an attribute name");
+  useEffect(() => {
+    if (!token) {
+      window.location.href = "/signin";
       return;
     }
-
-    setIsSubmitting(true);
-    setError(null);
-    try {
-      const res = await fetch(`${baseUrl}/admin/attributes`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          name: newCatalogAttr.trim(),
-          description: "Added via Admin Panel"
-        })
-      });
-
-      if (!res.ok) {
-        const errorData = await res.json();
-        throw new Error(errorData.error || "Failed to add attribute");
-      }
-
-      setSuccess(`Attribute "${newCatalogAttr}" added successfully!`);
-      setNewCatalogAttr("");
-      await fetchCatalog();
-      setTimeout(() => setSuccess(null), 3000);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Network error. Ensure backend is running.";
-      setError(message);
-      console.error(message);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+    fetchUsers();
+  }, [token, fetchUsers]);
 
   // 
   const openAssignModal = (user: User) => {
@@ -168,12 +102,10 @@ export function SubAdminPanel() {
         throw new Error(errorMsg || "Failed to update attributes");
       }
 
-      setSuccess("Attributes updated successfully!");
       setShowModal(false);
       setNewAttributes("");
       setSelectedUser(null);
       await fetchUsers();
-      setTimeout(() => setSuccess(null), 3000);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Request error";
       setError(message);

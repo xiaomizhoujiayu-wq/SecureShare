@@ -1,5 +1,3 @@
-import { AdminLayout } from "@/components/AdminLayout";
-import { AdminPanel } from "@/components/AssignAttribute";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { SubAdminPanel } from "@/components/SubadminPanel";
 

@@ -1,10 +1,9 @@
 import { useLocation} from "wouter";
-import { LogOut, FileText, BarChart3, User, Settings, Folder, Home, Upload, Menu, X } from "lucide-react";
+import { LogOut, User, Settings, Folder, Home, Upload, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ThemeTogglle"; 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {SecureShareLogo} from "@/components/logo";
-import { navigate } from "wouter/use-browser-location";
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
@@ -12,7 +11,7 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [location, navigate] = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [username, setUsername] = useState("User");
+  const [username] = useState(() => localStorage.getItem("username") || "User");
   const userRole = localStorage.getItem('user_role');
 
   const navItems = [
@@ -33,13 +32,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
   const closeSidebar = () => setSidebarOpen(false);
   console.log(userRole)
-
-  useEffect(() => {
-    const storedName = localStorage.getItem("username");
-    
-    
-    if (storedName) setUsername(storedName);
-  }, []);
 
   const getInitials = (name: string) => {
       if (!name) return "U";
