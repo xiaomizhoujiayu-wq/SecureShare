@@ -1,10 +1,10 @@
-import { useLocation} from "wouter";
-import { LogOut, FileText, BarChart3, User, Settings, Folder, Home, Menu, X } from "lucide-react";
+import { useLocation } from "wouter";
+import { LogOut, User, Settings, Folder, Home, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ThemeToggle from "@/components/ThemeTogglle"; 
 import { useState, useEffect } from "react";
-import {SecureShareLogo} from "@/components/logo";
-import { navigate } from "wouter/use-browser-location";
+import { SecureShareLogo } from "@/components/logo";
+
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
@@ -12,7 +12,7 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [location, navigate] = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [username, setUsername] = useState("User");
+  const [username, setUsername] = useState(() => localStorage.getItem("username") || "User");
   const userRole = localStorage.getItem('user_role');
 
   const navItems = [
@@ -20,18 +20,18 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     { label: "File explorer", icon: Folder, href: "/explorer" },
     { label: "Profile", icon: User, href: "/profile" },
   ];
+
   if (userRole === 'ADMIN') {
     navItems.push({ label: "Admin", icon: Settings, href: "/admin" });
   }
-   if (userRole === 'SUB_ADMIN') {
+
+  if (userRole === 'SUB_ADMIN') {
     navItems.push({ label: "Sub_Admin", icon: User, href: "/sub_admin" });
   } 
      
-  
   const isActive = (href: string) => location === href;
 
   const closeSidebar = () => setSidebarOpen(false);
-  console.log(userRole)
 
   useEffect(() => {
     const storedName = localStorage.getItem("username");
@@ -41,28 +41,23 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   }, []);
 
   const getInitials = (name: string) => {
-      if (!name) return "U";
-      const parts = name.split(" ");
-      if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
-      return name.substring(0, 2).toUpperCase();
-    };
+    if (!name) return "U";
+    const parts = name.split(" ");
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+    return name.substring(0, 2).toUpperCase();
+  };
 
-// 4. sign out
   const handleLogout = () => {
-
     localStorage.removeItem("auth_token");
     localStorage.removeItem("user_attributes");
     localStorage.removeItem("username");
     localStorage.removeItem("user_role");
     localStorage.removeItem("user_id");
-
-    //
     navigate("/"); 
   };   
 
   return (
     <div className="relative flex h-screen bg-slate-50 dark:bg-[#0A0E17] text-foreground overflow-hidden transition-colors duration-300">
-      
       {/* Mobile Overlay */}
       {sidebarOpen && (
         <div

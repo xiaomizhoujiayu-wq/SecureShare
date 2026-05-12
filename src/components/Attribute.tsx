@@ -30,9 +30,6 @@ export function AttributeMarketplace() {
   const [justification, setJustification] = useState("");
   const [showRequestForm, setShowRequestForm] = useState(false);
 
-  // Current user's attributes
-  const currentAttributes = ["Department: IT", "Role: Manager", "Team: Security"];
-
   // Available attributes not yet held
   const availableAttributes: AvailableAttribute[] = [
     {

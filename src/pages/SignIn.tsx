@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { loginUser } from "@/lib/api";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/hooks";
 import { Lock, Mail, ArrowRight } from "lucide-react";
 import { navigate } from "wouter/use-browser-location";
 
@@ -21,6 +20,7 @@ export default function SignIn() {
       handleLoginSuccess(result, email);
       navigate("/home");
     } catch (err) {
+      console.error("Login error:", err);
       alert("Login failed! Check console.");
       setIsLoading(false);
     }

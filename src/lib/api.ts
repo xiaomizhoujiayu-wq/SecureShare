@@ -18,7 +18,7 @@ export const loginUser = async (email: string, password: string) => {
   return response.data;
 };
 
-export const registerUser=async (payload:any) => {
+export const registerUser=async (payload: Record<string, unknown>) => {
   
   const response = await api.post('/abe/register', { payload });
   return response.data;
@@ -77,4 +77,11 @@ export const uploadAndEncryptFile = async (file: File, selectedTags: string, bas
   formData.append('key', base64Key);
   const response = await api.post('/abe/encrypt-file', formData);
   return response.data;
+};
+
+export const downloadFile = async (fileId: string) => {
+  const response = await api.get(`/abe/download/${fileId}`, {
+    responseType: 'blob'
+  });
+  return response;
 };

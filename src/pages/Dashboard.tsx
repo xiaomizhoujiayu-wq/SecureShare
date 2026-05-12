@@ -1,6 +1,5 @@
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { EncryptionWizard } from "@/components/EncryptionWizard";
-import { Lock } from "lucide-react";
 
 
 export default function Dashboard() {

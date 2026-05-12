@@ -19,7 +19,8 @@
     "baseUrl": ".",
     "ignoreDeprecations": "6.0",
     "paths": {
-      "@/*": ["./src/*"]},
+      "@/*": ["./src/*"]
+    },
     /* Linting */
     "noUnusedLocals": false,
     "noUnusedParameters": false,
