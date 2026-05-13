@@ -5,7 +5,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 // import { getMyAttributes, getAllFiles } from "@/lib/api";
-import { getMyAttributes, getAllFiles, downloadFile } from "@/lib/api";
+import { getMyAttributes, getAllFiles, downloadFile, deleteFile } from "@/lib/api";
 
 interface BackendFileResponse {
   id: number;
@@ -120,12 +120,16 @@ export function SecureFileExplorer() {
     }
 
     // 2. level base 
-    const fileLevelAttr = policyArray.find(p => p.startsWith("Level:"));
+    const levelTags = policyArray.filter(p => p.toLowerCase().startsWith("level:"));
     let hasLevelAccess = false;
-    if (fileLevelAttr) {
-      const requiredLevel = parseInt(fileLevelAttr.split(":")[1], 10);
-      hasLevelAccess = myLevel <= requiredLevel;
-    }
+    if (levelTags.length>0) {
+    //allow levels
+    const allowedLevels = levelTags.map(tag => parseInt(tag.split(":")[1], 10)).filter(num => !isNaN(num));
+    if (allowedLevels.length > 0) {
+            const maxRequiredLevel = Math.max(...allowedLevels);            
+            hasLevelAccess = myLevel <= maxRequiredLevel;
+          }    
+        }
 
     // 3. private share 
     const isDirectlySharedWithMe = policyArray.includes(`ID:${userUID}`);
@@ -150,16 +154,30 @@ export function SecureFileExplorer() {
     setIsDeleteModalOpen(true);
   };
 
-  const confirmDelete = () => {
-    if (fileToDelete) {
-      setAllFiles(prev => prev.filter(f => f.id !== fileToDelete));
-      setIsDeleteModalOpen(false);
-      setFileToDelete(null);
-      setShowSuccessToast(true);
-      setTimeout(() => {
+  const confirmDelete =async () => {
+
+    if (!fileToDelete) return;
+
+      try {
+    await deleteFile(fileToDelete);
+
+    setAllFiles(prev =>
+      prev.filter(f => f.id !== fileToDelete)
+    );
+
+    setIsDeleteModalOpen(false);
+    setFileToDelete(null);
+
+    setShowSuccessToast(true);
+
+    setTimeout(() => {
       setShowSuccessToast(false);
-          }, 3000);     
-    }
+    }, 3000);
+
+  } catch (error) {
+    console.error("Delete failed:", error);
+    alert("Failed to delete file");
+  }
   };
 
   const base64ToBytes = (base64: string): Uint8Array => {
@@ -242,13 +260,13 @@ export function SecureFileExplorer() {
   // Reusable table component for both sections
  const FileTable = ({ files, isMyFiles }: { files: FileItem[]; isMyFiles: boolean }) => (
     <div className="hidden md:block overflow-x-auto bg-slate-50 dark:bg-slate-900/10 transition-colors duration-300">
-      <table className="w-full">
+      <table className="w-full table-fixed">
         <thead>
           <tr className="border-b border-slate-200 dark:border-slate-700/50 bg-slate-100 dark:bg-slate-900/50 transition-colors duration-300">
-            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 dark:text-slate-300">File name</th>
-            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 dark:text-slate-300">policy</th>
-            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 dark:text-slate-300">accessibility</th>
-            <th className="px-6 py-4 text-right text-xs font-semibold text-slate-600 dark:text-slate-300 w-28">action</th>
+            <th className="w-[40%] px-6 py-4 text-left text-xs font-semibold text-slate-600 dark:text-slate-300">File Name</th>
+            <th className="w-[25%] px-6 py-4 text-left text-xs font-semibold text-slate-600 dark:text-slate-300">Policy</th>
+            <th className="w-[20%] px-6 py-4 text-left text-xs font-semibold text-slate-600 dark:text-slate-300">Accessibility</th>
+            <th className="w-[15%] px-6 py-4 text-center text-xs font-semibold text-slate-600 dark:text-slate-300" w-32>Action</th>
           </tr>
         </thead>
         <tbody>
@@ -280,7 +298,7 @@ export function SecureFileExplorer() {
                   </span>
                 )}
               </td>
-              <td className="px-6 py-4 text-right">
+              <td className="px-6 py-4 text-center">
                 <div className="flex items-center justify-end gap-2"></div>
                 <button 
                       onClick={() => handleDownload(file)} 
@@ -289,13 +307,15 @@ export function SecureFileExplorer() {
                     >
                       <Download className="w-4 h-4" />
                 </button>
-                <button 
+                  {isMyFiles && 
+                    <button 
                       onClick={() => handleDelete(file.id)} 
                       className="p-2 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg text-slate-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
                       title="Delete"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
+                    }
               </td>
 
             </tr>

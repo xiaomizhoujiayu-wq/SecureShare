@@ -12,6 +12,8 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+console.log("API FILE LOADED");
+
 export const loginUser = async (email: string, password: string) => {
   
   const response = await api.post('/abe/login', { email, password });
@@ -86,4 +88,9 @@ export const downloadFile = async (fileId: string | number) => {
   });
 
   return response;
+};
+
+export const deleteFile =async (fileId: string | number) => {
+  const response = await api.delete(`/abe/delete/${fileId}`);
+  return response.data;
 };

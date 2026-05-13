@@ -11,6 +11,7 @@ import {
   Zap,
   ChevronDown,
   ChevronUp,
+  FileUp,
 } from "lucide-react";
 import { uploadAndEncryptFile, getMyAttributes } from "@/lib/api";
 import axios from "axios";
@@ -198,7 +199,21 @@ export function EncryptionWizard() {
       // Important:
       // Use the real backend attribute string directly.
       // Example: "it" stays "it", not "Role:it".
-      selectedTags = selectedAttributes.map((a) => a.rawTag).join(",");
+      const expandedTags = new Set();
+      selectedAttributes.forEach((a) => {
+        const tag = a.rawTag;
+        if (tag.toLowerCase().startsWith("level:")) {
+          const targetLevel = parseInt(tag.split(":")[1], 10);
+          if (!isNaN(targetLevel)) {
+            for (let i = 1; i <= targetLevel; i++) {
+              expandedTags.add(`Level:${i}`);
+            }
+          } else {
+            expandedTags.add(tag);
+          }
+        }
+      });
+      selectedTags = Array.from(expandedTags).join(",");
     } else if(sharingMode ==="private") {
       selectedTags = `ID:${targetUid}`;
     }
@@ -283,11 +298,12 @@ export function EncryptionWizard() {
   };
 
   return (
-    <div className="rounded-xl p-4 sm:p-8 bg-white dark:bg-slate-900/40 backdrop-blur-md border border-slate-200 dark:border-slate-700/50 shadow-sm dark:shadow-none transition-colors duration-300">
-      <h2 className="font-display text-xl sm:text-2xl mb-6 sm:mb-8 text-slate-900 dark:text-white">
-        Encryption Wizard
-      </h2>
-
+    <div className="rounded-2xl p-4 sm:p-8 bg-white/80 dark:bg-slate-900/40 backdrop-blur-xl border border-white/60 dark:border-slate-700/50 shadow-xl shadow-slate-200/40 dark:shadow-none transition-all duration-300">
+      <div className="flex items-center gap-3 mb-6 sm:mb-8">
+        <h2 className="font-display text-xl sm:text-2xl font-semibold text-slate-800 dark:text-white">
+          Encryption Wizard
+        </h2>
+      </div>
       {/* Step Indicator */}
       <div className="flex items-center justify-between mb-6 sm:mb-8 gap-1 sm:gap-2">
         {steps.map((step, idx) => (
@@ -370,22 +386,26 @@ export function EncryptionWizard() {
           {expandedStep === 1 && (
             <div className="p-3 sm:p-4 border-t border-slate-200 dark:border-slate-700/50">
               {!fileName && (
-                <label className="block">
-                  <div className="border-2 border-dashed border-slate-300 dark:border-emerald-500/30 rounded-lg p-6 sm:p-8 text-center cursor-pointer hover:border-emerald-500/50 hover:bg-emerald-50 dark:hover:bg-emerald-500/5 transition-colors bg-slate-50 dark:bg-transparent">
-                    <Upload className="w-8 h-8 sm:w-10 sm:h-10 text-emerald-500 dark:text-emerald-400 mx-auto mb-2 sm:mb-3" />
-                    <p className="font-semibold text-sm sm:text-base mb-1 text-slate-900 dark:text-white">
-                      Drag & drop or click
-                    </p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                      PDF • DOCX • PNG • JPG • ZIP
-                    </p>
+                <label className="relative flex flex-col items-center justify-center w-full px-6 py-12 sm:py-16 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-600 bg-slate-50/50 dark:bg-slate-800/30 hover:bg-emerald-50/50 dark:hover:bg-emerald-500/10 hover:border-emerald-400 dark:hover:border-emerald-500 transition-all duration-300 ease-out group cursor-pointer overflow-hidden">
+                  
+                  <div className="absolute inset-0 bg-gradient-to-b from-transparent to-emerald-50/50 dark:to-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
 
-                    <input
-                      type="file"
-                      onChange={handleFileUpload}
-                      className="hidden"
-                    />
+                  <div className="p-4 rounded-full mb-4 bg-white dark:bg-slate-700 shadow-sm text-slate-400 dark:text-slate-300 group-hover:text-emerald-500 group-hover:scale-110 group-hover:shadow-md transition-all duration-300 z-10">
+                    <Upload className="w-8 h-8 sm:w-10 sm:h-10" strokeWidth={1.5} />
                   </div>
+
+                  <p className="font-semibold text-sm sm:text-base mb-2 text-slate-700 dark:text-slate-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors z-10">
+                    Drag & Drop or Click to Browse
+                  </p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs text-center z-10">
+                    PDF • DOCX • PNG • JPG • ZIP
+                  </p>
+
+                  <input
+                    type="file"
+                    onChange={handleFileUpload}
+                    className="hidden"
+                  />
                 </label>
               )}
 
