@@ -11,7 +11,6 @@ import {
   Zap,
   ChevronDown,
   ChevronUp,
-  FileUp,
 } from "lucide-react";
 import { uploadAndEncryptFile, getMyAttributes } from "@/lib/api";
 import axios from "axios";

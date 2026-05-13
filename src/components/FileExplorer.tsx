@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { 
-  FileText, Shield, Lock, Download, Share2, Trash2,
+  FileText, Shield, Lock, Download, Trash2,
   AlertCircle, ChevronDown, FolderDown, Loader2, Upload
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -139,7 +139,7 @@ export function SecureFileExplorer() {
 
     return isDirectlySharedWithMe || hasLevelAccess || hasAttributeMatch;
     });
-  }, [allFiles, userId, myAttributes, myLevel]);
+  }, [allFiles, userId, myAttributes, myLevel,userUID]);
  
   //files that I upload
   const myUploadedFiles = useMemo(() => {
