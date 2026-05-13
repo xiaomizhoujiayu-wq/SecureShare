@@ -266,7 +266,7 @@ export function SecureFileExplorer() {
             <th className="w-[40%] px-6 py-4 text-left text-xs font-semibold text-slate-600 dark:text-slate-300">File Name</th>
             <th className="w-[25%] px-6 py-4 text-left text-xs font-semibold text-slate-600 dark:text-slate-300">Policy</th>
             <th className="w-[20%] px-6 py-4 text-left text-xs font-semibold text-slate-600 dark:text-slate-300">Accessibility</th>
-            <th className="w-[15%] px-6 py-4 text-center text-xs font-semibold text-slate-600 dark:text-slate-300" w-32>Action</th>
+            <th className="w-[15%] px-6 py-4 text-center text-xs font-semibold text-slate-600 dark:text-slate-300">Action</th>
           </tr>
         </thead>
         <tbody>
