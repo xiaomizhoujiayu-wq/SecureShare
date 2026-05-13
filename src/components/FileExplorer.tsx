@@ -191,17 +191,16 @@ export function SecureFileExplorer() {
   ): Promise<ArrayBuffer> => {
     const encryptedBytes = new Uint8Array(encryptedBuffer);
 
-    // 上传时前 12 字节保存的是 IV
+    //  IV
     const iv = encryptedBytes.slice(0, 12);
 
-    // 后面的内容才是真正的密文
     const ciphertext = encryptedBytes.slice(12);
 
     const rawKeyBytes = base64ToBytes(base64Key);
 
     const cryptoKey = await window.crypto.subtle.importKey(
       "raw",
-      rawKeyBytes,
+      new Uint8Array(rawKeyBytes), 
       { name: "AES-GCM" },
       false,
       ["decrypt"]
@@ -220,17 +219,17 @@ export function SecureFileExplorer() {
     try {
       const response = await downloadFile(file.id);
 
-      // 后端返回给前端的 AES key
+      //  AES key from backend
       const sessionKeyBase64 = response.headers["x-session-key"];
 
       if (!sessionKeyBase64) {
         throw new Error("Missing X-Session-Key from backend response.");
       }
 
-      // 后端已经解开自己那一层，response.data 现在是前端当初加密过的 .enc 文件
+      // aes encrypted file and aes key
       const encryptedArrayBuffer = await response.data.arrayBuffer();
 
-      // 前端再解开自己上传时加密的那一层
+      // decrypted file
       const decryptedBuffer = await decryptFrontendEncryptedFile(
         encryptedArrayBuffer,
         sessionKeyBase64
@@ -242,7 +241,6 @@ export function SecureFileExplorer() {
       const link = document.createElement("a");
       link.href = url;
 
-      // 去掉最后的 .enc，恢复原始文件名
       link.download = file.name.endsWith(".enc")
         ? file.name.slice(0, -4)
         : file.name;
