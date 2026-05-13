@@ -282,7 +282,7 @@ export default function Homepage() {
     <DashboardLayout>
       <div className="min-h-screen bg-slate-50 p-6 text-slate-900 dark:bg-slate-950 dark:text-white sm:p-8">
         {/* Top Search */}
-        {/* <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div className="flex h-12 w-full max-w-2xl items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
             <Search className="h-5 w-5 text-slate-400" />
 
@@ -311,7 +311,7 @@ export default function Homepage() {
               Upload & Encrypt
             </button>
           </div>
-        </div> */}
+        </div>
 
         {/* Header */}
         <section className="mb-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-8">
