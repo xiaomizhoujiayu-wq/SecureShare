@@ -27,20 +27,13 @@ interface FileItem {
   accessible: boolean;
   policyDetails: string;
 }
-const getUserId = () => localStorage.getItem("user_id") || "";
+
 export function SecureFileExplorer() {
   const [allFiles, setAllFiles] = useState<FileItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentUserId, setCurrentUserId] = useState<string | number | null>(null);
   const [expandedFile, setExpandedFile] = useState<string | null>(null);
   const [expandedMyFile, setExpandedMyFile] = useState<string | null>(null);
-  const [myAttributes, setMyAttributes] = useState<string[]>([]);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [fileToDelete, setFileToDelete] = useState<string | number | null>(null);
-  const [showSuccessToast, setShowSuccessToast] = useState(false);
-  const userId = getUserId();
-  const [userUID, setUserUID] = useState("");
-
-
 
   useEffect(() => {
     const initData = async () => {
@@ -49,18 +42,10 @@ export function SecureFileExplorer() {
         const attrData = await getMyAttributes();
         const rawAttrString = attrData.attributes || ""; 
         const attrArray = rawAttrString.trim() ? rawAttrString.split(',') : [];
-
-        const businessAttributes = attrArray.filter(
-          (attr: string) => !attr.startsWith("ID:")
-        );
-
-        setMyAttributes(businessAttributes);
-
         const idAttribute = attrArray.find((attr: string) => attr.startsWith("ID:"));
         
-        if (idAttribute) {
-          setUserUID(idAttribute.substring(3)); 
-        } 
+        const myId = idAttribute ? idAttribute.substring(3) : attrData.userId;
+        setCurrentUserId(myId);
 
         const rawFiles: BackendFileResponse[] = await getAllFiles(); 
         console.log("rawFiles:", rawFiles);
@@ -75,7 +60,7 @@ export function SecureFileExplorer() {
             uploadDate: item.uploadTime 
               ? new Date(item.uploadTime).toLocaleDateString() 
               : "Unknown time", 
-            policy: isPrivate ? "Private Share" : (item.policy || "Public"), 
+            policy: isPrivate ? "Private Access" : (item.policy || "Public"), 
             size: "-- MB",
             accessible: item.accessible ?? true, 
             policyDetails: item.policy || "No details provided"      
@@ -92,21 +77,6 @@ export function SecureFileExplorer() {
     
     initData();
   }, []);
-  const myLevel = useMemo(() => {
-  const levelAttr = myAttributes.find(attr => attr.startsWith("Level:"));
-    if (levelAttr) {
-      return parseInt(levelAttr.split(":")[1], 10);
-    }
-    return 5; // if didn't set level, set the default level into 5
-  }, [myAttributes]);
-  //files shared with me 
-  const sharedWithMeFiles = useMemo(() => {
-    if (!userId || !userUID) return [];
-
-  return allFiles.filter(file => {
-    // 1. not my file 
-    const isNotMine = String(file.ownerId) !== String(userId);
-    if (!isNotMine) return false;
 
     // 
     const rawPolicy = file.policyDetails; 
@@ -147,6 +117,11 @@ export function SecureFileExplorer() {
     return allFiles.filter(file => String(file.ownerId) === String(userId));
   }, [allFiles, userId]);
  
+  // My shared files (files I uploaded)
+  const sharedFiles = useMemo(() => {
+    if (currentUserId === null) return [];
+    return allFiles.filter(file => String(file.ownerId) === String(currentUserId));
+  }, [allFiles, currentUserId]);
 
 
   const handleDelete = async (fileId: string) => {
@@ -281,6 +256,7 @@ export function SecureFileExplorer() {
                   </div>
                 </div>
               </td>
+              <td className="px-6 py-4 text-sm text-slate-700 dark:text-slate-300">{file.ownerName}</td>
               <td className="px-6 py-4">
                 <div className="inline-flex items-center gap-2 px-2 py-1 rounded-md bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 transition-colors" title={file.policyDetails}>
                   <Shield className={`w-3 h-3 ${file.accessible ? "text-emerald-500 dark:text-emerald-400" : "text-slate-400 dark:text-slate-500"}`} />
@@ -317,7 +293,6 @@ export function SecureFileExplorer() {
                     </button>
                     }
               </td>
-
             </tr>
           ))}
         </tbody>
@@ -360,7 +335,7 @@ export function SecureFileExplorer() {
                 <span className="text-slate-500 dark:text-slate-400">policy:</span>
                 <span className="text-emerald-600 dark:text-emerald-400">{file.policy}</span>
               </div>
-              <Button  size="sm" className="w-full gap-2" variant={file.accessible ? "default" : "secondary"}>
+              <Button size="sm" className="w-full gap-2" variant={file.accessible ? "default" : "secondary"}>
                 {isMyFiles ? (
                   <><Download className="w-4 h-4" /> manage sharing</>
                 ) : file.accessible ? (
@@ -395,15 +370,15 @@ export function SecureFileExplorer() {
             <Loader2 className="w-8 h-8 animate-spin text-cyan-500" />
             <p className="text-sm">decrypting list...</p>
           </div>
-        ) : sharedWithMeFiles.length === 0 ? (
+        ) : sharedFiles.length === 0 ? (
           <div className="py-20 flex flex-col items-center justify-center text-slate-400 dark:text-slate-500">
             <FolderDown className="w-12 h-12 mb-3 opacity-20" />
             <p className="text-sm">No files shared with you yet</p>
           </div>
         ) : (
           <>
-            <FileTable files={sharedWithMeFiles} isMyFiles={false} />
-            <MobileFileCards files={sharedWithMeFiles} isMyFiles={false} />
+            <FileTable files={sharedFiles} isMyFiles={false} />
+            <MobileFileCards files={sharedFiles} isMyFiles={false} />
           </>
         )}
       </div>
@@ -425,62 +400,17 @@ export function SecureFileExplorer() {
             <Loader2 className="w-8 h-8 animate-spin text-emerald-500" />
             <p className="text-sm">loading your files...</p>
           </div>
-        ) : myUploadedFiles.length === 0 ? (
+        ) : mySharedFiles.length === 0 ? (
           <div className="py-20 flex flex-col items-center justify-center text-slate-400 dark:text-slate-500">
             <Upload className="w-12 h-12 mb-3 opacity-20" />
             <p className="text-sm">No files uploaded yet</p>
           </div>
         ) : (
           <>
-            <FileTable files={myUploadedFiles} isMyFiles={true} />
-            <MobileFileCards files={myUploadedFiles} isMyFiles={true} />
+            <FileTable files={mySharedFiles} isMyFiles={true} />
+            <MobileFileCards files={mySharedFiles} isMyFiles={true} />
           </>
         )}
-      </div>
-
-      {isDeleteModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl w-full max-w-sm overflow-hidden transform transition-all border border-slate-200 dark:border-slate-700">
-            <div className="p-6">
-              <div className="flex items-center gap-4 mb-4">
-                <div className="p-3 bg-red-100 dark:bg-red-500/10 rounded-full text-red-600">
-                  <Trash2 className="w-6 h-6" />
-                </div>
-                <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Delete File</h3>
-              </div>
-              <p className="text-slate-500 dark:text-slate-400">
-                Are you sure you want to delete this file?
-              </p>
-            </div>
-
-            <div className="bg-slate-50 dark:bg-slate-900/50 px-6 py-4 flex flex-col-reverse sm:flex-row justify-end gap-3">
-              <button 
-                onClick={() => setIsDeleteModalOpen(false)}
-                className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-lg transition-colors"
-              >
-                Cancel
-              </button>
-              <button 
-                onClick={confirmDelete}
-                className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-lg shadow-sm transition-colors"
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Success Toast */}
-      <div className={`fixed bottom-8 left-1/2 -translate-x-1/2 z-[60] transition-all duration-500 transform ${showSuccessToast ? 'translate-y-0 opacity-100' : 'translate-y-12 opacity-0 pointer-events-none'}`}>
-        <div className="bg-emerald-600 text-white px-6 py-3 rounded-full shadow-2xl flex items-center gap-3">
-          <div className="bg-white/20 rounded-full p-1">
-            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
-            </svg>
-          </div>
-          <span className="font-medium">File deleted successfully!</span>
-        </div>
       </div>
     </div>
   );}
