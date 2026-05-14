@@ -65,7 +65,7 @@ export function SecureFileExplorer() {
         const rawFiles: BackendFileResponse[] = await getAllFiles(); 
         console.log("rawFiles:", rawFiles);
         const formattedFiles: FileItem[] = rawFiles.map((item: any) => {
-          const isPrivate = item.policy && item.policy.startsWith("ID:");
+        const isPrivate = item.policy && item.policy.startsWith("ID:");
           
           return {
             id: String(item.id),
@@ -377,7 +377,7 @@ export function SecureFileExplorer() {
   return (
     <div className="space-y-6">
       {/* SECTION 1: Shared With Me (Files others shared with me) */}
-      <div className="bg-white dark:bg-slate-900/40 backdrop-blur-md rounded-xl border border-slate-200 dark:border-slate-700/50 overflow-hidden shadow-sm dark:shadow-xl transition-colors duration-300">
+      <div className="bg-slate-100 dark:bg-slate-900/40 backdrop-blur-md rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm dark:shadow-xl transition-colors duration-300">
         <div className="p-4 sm:p-6 border-b border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-900/20 transition-colors duration-300">
           <div className="flex items-center gap-3 mb-1">
             <FolderDown className="w-6 h-6 text-cyan-600 dark:text-cyan-400" />
@@ -407,7 +407,7 @@ export function SecureFileExplorer() {
       </div>
 
       {/* SECTION 2: My Shared Files (Files I uploaded) */}
-      <div className="bg-white dark:bg-slate-900/40 backdrop-blur-md rounded-xl border border-slate-200 dark:border-slate-700/50 overflow-hidden shadow-sm dark:shadow-xl transition-colors duration-300">
+      <div className="bg-slate-100 dark:bg-slate-900/40 backdrop-blur-md rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden shadow-sm dark:shadow-xl transition-colors duration-300">
         <div className="p-4 sm:p-6 border-b border-slate-200 dark:border-slate-700/50 bg-slate-50 dark:bg-slate-900/20 transition-colors duration-300">
           <div className="flex items-center gap-3 mb-1">
             <Upload className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
