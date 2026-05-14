@@ -42,7 +42,7 @@ export function IdentityStatus() {
         
         const parsedAttributes = businessAttributes.map((attrStr: string, index: number) => {
           const parts = attrStr.split(':');
-          const category = parts.length > 1 ? parts[0] : "Role";
+          const category = parts.length > 1 ? parts[0] : "tag";
           const value = parts.length > 1 ? parts.slice(1).join(':') : attrStr; 
           
           return {

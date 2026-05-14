@@ -16,7 +16,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const userRole = localStorage.getItem('user_role');
 
   const navItems = [
-    { label: "Home", icon: Home, href: "/homepage" },
+    { label: "Home", icon: Home, href: "/home" },
     { label: "Upload & Encrypt", icon: Upload, href: "/dashboard" },
     { label: "File explorer", icon: Folder, href: "/explorer" },
     { label: "Profile", icon: User, href: "/profile" },
@@ -62,7 +62,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   };   
 
   return (
-    <div className="relative flex h-screen bg-slate-50 dark:bg-[#0A0E17] text-foreground overflow-hidden transition-colors duration-300">
+    <div className="relative flex h-screen bg-slate-100 dark:bg-transparent text-foreground overflow-hidden transition-colors duration-300">
       
       {/* Mobile Overlay */}
       {sidebarOpen && (
@@ -164,32 +164,40 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       </aside>
       
       {/* Main Content */}
-      <main className="relative z-10 flex-1 overflow-auto flex flex-col bg-transparent">
-        {/* Mobile Header */}
-        <div className="relative z-20 lg:hidden sticky top-0 bg-white/80 dark:bg-[#0B0F19]/80 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 p-4 flex items-center justify-between transition-colors duration-300 shadow-sm dark:shadow-none">
-          <h2 className="font-display text-lg font-bold text-slate-900 dark:text-white">SecureShare</h2>
-          <button
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/50 rounded-lg transition-colors"
-          >
-            <Menu className="w-6 h-6" />
-          </button>
-        </div>
+      <main className="relative z-10 flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-slate-900 transition-colors duration-300 dark:bg-[radial-gradient(circle_at_50%_0%,_rgba(16,185,129,0.05)_0%,_transparent_50%),_radial-gradient(circle_at_0%_0%,_rgba(59,130,246,0.03)_0%,_transparent_30%)]" >
+        
+        {/* top navigation */}
+        <header className="sticky top-0 z-20 flex h-20 w-full items-center justify-between border-b border-slate-200 bg-white/80 dark:bg-slate-900 px-4 backdrop-blur-xl dark:border-slate-800 dark:bg-[#0B0F19]/80 lg:px-8">
+          
+          <div className="flex items-center gap-4">
 
-        {/* Home Logo Section (Top Right Controls) */}
-        <div className="flex justify-end items-center gap-3 p-4">
-          <ThemeToggle  />
-          <button 
-            onClick={() => navigate("/home")} 
-            className="w-8 h-8 rounded-full bg-emerald-500 hover:bg-emerald-600 text-white flex items-center justify-center transition-colors shadow-sm"
-          >
-            <Home className="w-5 h-5" />
-          </button>
-        </div>
+          </div>
+
+          {/* dashboard logo */}
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <button 
+              onClick={() => navigate("/home")} 
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500 text-white shadow-sm transition-colors hover:bg-emerald-600"
+              title="Go Home"
+            >
+              <Home className="w-5 h-5" />
+            </button>
+            
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className="ml-2 rounded-lg p-2 text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800/50 lg:hidden"
+            >
+              <Menu className="w-6 h-6" />
+            </button>
+          </div>
+        </header>
         
         {/* Page Content */}
-        <div className="flex-1 overflow-auto p-4 sm:p-6 lg:p-8">
-          {children}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden">
+          <div className="mx-auto max-w-[1600px] p-4 sm:p-6 lg:p-8">
+            {children}
+          </div>
         </div>
       </main>
     </div>

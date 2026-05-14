@@ -16,6 +16,8 @@ import {
   Upload,
   User,
   Users,
+  Fingerprint,
+  Info,
 } from "lucide-react";
 
 type BackendUser = {
@@ -280,24 +282,19 @@ export default function Homepage() {
 
   return (
     <DashboardLayout>
-      <div className="min-h-screen bg-slate-50 p-6 text-slate-900 dark:bg-slate-950 dark:text-white sm:p-8">
-        {/* Top Search */}
+      <div className="min-h-screen bg-slate-50 p-6 text-slate-900 dark:bg-slate-900 dark:text-white sm:p-8">
+        {/* Top bar */}
         <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div className="flex h-12 w-full max-w-2xl items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <Search className="h-5 w-5 text-slate-400" />
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">
+              Overview
+            </h1>
 
-            <input
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search files, folders, and policies"
-              className="flex-1 bg-transparent text-sm outline-none placeholder:text-slate-400"
-            />
-          </div>
-
+        </div>
           <div className="flex items-center gap-3">
             <button
               onClick={loadDashboardData}
-              className="inline-flex h-12 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-600 shadow-sm transition hover:bg-slate-100 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800"
+              className="inline-flex h-12 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold text-slate-600 shadow-sm transition hover:bg-slate-100 dark:border-slate-500 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
             >
               <RefreshCw className="h-4 w-4" />
               Refresh
@@ -313,45 +310,57 @@ export default function Homepage() {
           </div>
         </div>
 
-        {/* Header */}
-        <section className="mb-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900 sm:p-8">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+        {/* Welcome Banner */}
+        <section className="mb-8 overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
+          {/* left side */}
+          <div className="flex flex-col gap-6 p-6 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300">
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-600 dark:text-emerald-300">
                 <ShieldCheck className="h-4 w-4" />
-                Backend connected · ABE protected storage
+                CP-ABE Protected Storage
               </div>
 
-              <h1 className="font-display text-3xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
-                Welcome to SecureShare
-              </h1>
+              <h2 className="text-2xl font-bold tracking-tight">
+                Welcome back, {username}
+              </h2>
 
-              <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600 dark:text-slate-400 sm:text-base">
-                Secure cloud storage with Attribute-Based Encryption. Upload
-                files, apply access policies, and manage sharing based on
-                backend users and attributes.
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-500 dark:text-slate-400">
+                Upload, encrypt, and manage secure files with
+                attribute-based access policies.
               </p>
             </div>
+          <div className="my-6 h-px w-full bg-slate-200 dark:bg-slate-700 lg:my-0 lg:h-20 lg:w-px" />
 
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 dark:border-slate-800 dark:bg-slate-950">
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-500 text-sm font-bold text-white">
-                  {getInitials(username)}
-                </div>
+          {/* right side */}
+          <div className="lg:min-w-[280px] lg:pl-8">
+            <p className="mb-3 text-xs font-medium uppercase tracking-wider text-emerald-700 dark:text-emerald-500">
+              Active Attributes
+            </p>
 
-                <div>
-                  <p className="font-semibold text-slate-900 dark:text-white">
-                    {username}
-                  </p>
-                  <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                    {formatRole(userRole)} {userId ? `· ID ${userId}` : ""}
-                  </p>
-                </div>
-              </div>
+            <div className="flex flex-wrap gap-2">
+              {loading ? (
+                [1, 2].map((i) => (
+                  <div key={i} className="h-6 w-16 animate-pulse rounded bg-slate-100 dark:bg-slate-800" />
+                ))
+              ) : myAttributes?.length > 0 ? (
+                myAttributes.map((attr) => (
+                  <span
+                    key={attr}
+                    className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium text-emerald-700 shadow-sm ring-1 ring-inset ring-emerald-600/20 bg-emerald-500/20 dark:bg-emerald-500/50 dark:text-emerald-300 dark:ring-emerald-500/30"
+                  >
+                    {attr}
+                  </span>
+                ))
+              ) : (
+                <span className="text-sm text-slate-400">No attributes</span>
+              )}
             </div>
+          </div>
+
           </div>
         </section>
 
+        {/* Error */}
         {error && (
           <div className="mb-6 flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
             <AlertCircle className="mt-0.5 h-5 w-5 shrink-0" />
@@ -361,345 +370,304 @@ export default function Homepage() {
 
         {/* Stats */}
         <section className="mb-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300">
-              <FileText className="h-5 w-5" />
-            </div>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              Total items
-            </p>
-            <p className="mt-1 text-3xl font-bold">
-              {loading ? "--" : files.length}
-            </p>
+          {[
+            {
+              label: "Total Items",
+              value: loading ? "--" : files.length,
+              icon: FileText,
+              color: "text-emerald-500 bg-emerald-500/10",
+            },
+            {
+              label: "ABE Protected",
+              value: loading ? "--" : protectedCount,
+              icon: Shield,
+              color: "text-blue-500 bg-blue-500/10",
+            },
+            {
+              label: "Shared Policies",
+              value: loading ? "--" : sharedCount,
+              icon: Users,
+              color: "text-cyan-500 bg-cyan-500/10",
+            },
+            {
+              label: "My Attributes",
+              value: loading ? "--" : myAttributes.length,
+              icon: User,
+              color: "text-violet-500 bg-violet-500/10",
+            },
+          ].map((stat) => (
+            <div
+        key={stat.label}
+          className="group rounded-2xl border border-slate-200 bg-white dark:bg-slate-800 p-5 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg dark:border-slate-700"
+        >
+          <div className={`mb-4 flex h-11 w-11 items-center justify-center rounded-xl transition-transform group-hover:scale-110 ${stat.color}`}>
+            <stat.icon className="h-5 w-5" />
           </div>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-300">
-              <Shield className="h-5 w-5" />
-            </div>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              ABE protected
-            </p>
-            <p className="mt-1 text-3xl font-bold">
-              {loading ? "--" : protectedCount}
-            </p>
-          </div>
+          <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+            {stat.label}
+          </p>
 
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-cyan-50 text-cyan-600 dark:bg-cyan-500/10 dark:text-cyan-300">
-              <Users className="h-5 w-5" />
-            </div>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              Shared policies
-            </p>
-            <p className="mt-1 text-3xl font-bold">
-              {loading ? "--" : sharedCount}
-            </p>
+          <div className="mt-1 flex items-baseline">
+            {loading ? (
+              <div className="h-9 w-16 animate-pulse rounded-md bg-slate-100 dark:bg-slate-800" />
+            ) : (
+              <p className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+                {stat.value}
+              </p>
+            )}
           </div>
-
-          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-300">
-              <User className="h-5 w-5" />
             </div>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              My attributes
-            </p>
-            <p className="mt-1 text-3xl font-bold">
-              {loading ? "--" : myAttributes.length}
-            </p>
-          </div>
+          ))}
         </section>
 
-        {/* Suggested folders */}
-        <section className="mb-8">
-          <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-              Suggested Folders
-            </h2>
-
-            <button
-              onClick={() => navigate("/explorer")}
-              className="text-sm font-semibold text-emerald-600 hover:text-emerald-700 dark:text-emerald-300"
-            >
-              View all
-            </button>
-          </div>
-
-          {loading ? (
-            <EmptyState message="Loading folders from backend..." />
-          ) : folders.length === 0 ? (
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              {[
-                "Root Directory",
-                "Encrypted Files",
-                "Shared Projects",
-                "Personal Docs",
-              ].map((name, index) => (
-                <div
-                  key={name}
-                  className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300">
-                      <Folder className="h-6 w-6" />
-                    </div>
-
-                    <div>
-                      <p className="font-semibold text-slate-900 dark:text-white">
-                        {name}
-                      </p>
-
-                      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                        {index === 0 ? `${fileOnlyItems.length} files` : "Ready"}
-                      </p>
-
-                      <div className="mt-3 flex items-center gap-2 text-xs font-semibold text-emerald-600 dark:text-emerald-300">
-                        <ShieldCheck className="h-4 w-4" />
-                        Synced with backend
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              {folders.slice(0, 4).map((folder) => (
-                <div
-                  key={folder.id}
-                  className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900"
-                >
-                  <div className="flex items-start gap-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300">
-                      <Folder className="h-6 w-6" />
-                    </div>
-
-                    <div className="min-w-0">
-                      <p className="truncate font-semibold text-slate-900 dark:text-white">
-                        {folder.name}
-                      </p>
-
-                      <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                        Folder
-                      </p>
-
-                      <div className="mt-3">
-                        <AccessBadge label={folder.accessLabel} />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </section>
-
-        {/* Files and admin users */}
-        <section className="grid gap-8 xl:grid-cols-[1.5fr_1fr]">
-          <div className="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5 dark:border-slate-800">
+        <section className={`grid gap-4 ${isAdmin ? "xl:grid-cols-4" : "xl:grid-cols-1"}`}>
+          {/* Recent Files */}
+          <div className="xl:col-span-3 rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-800">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 px-6 py-5 dark:border-slate-700">
               <div>
-                <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                <h2 className="text-xl font-bold text-emerald-500">
                   Recent Files
                 </h2>
-                <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                  Data from GET /abe/list
-                </p>
               </div>
 
               <button
                 onClick={() => navigate("/explorer")}
                 className="inline-flex items-center gap-2 text-sm font-semibold text-emerald-600 hover:text-emerald-700 dark:text-emerald-300"
               >
-                File explorer <ArrowRight className="h-4 w-4" />
+                View all
+                <ArrowRight className="h-4 w-4" />
               </button>
             </div>
 
-            {loading ? (
-              <EmptyState message="Loading file list..." />
-            ) : filteredFiles.length === 0 ? (
-              <EmptyState message="No files found. Upload and encrypt your first file." />
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[760px] border-collapse text-left text-sm">
-                  <thead>
-                    <tr className="border-b border-slate-200 text-slate-500 dark:border-slate-800 dark:text-slate-400">
-                      <th className="px-6 py-4 font-semibold">Name</th>
-                      <th className="px-6 py-4 font-semibold">
-                        Access Policy
-                      </th>
-                      <th className="px-6 py-4 font-semibold">Owner</th>
-                      <th className="px-6 py-4 font-semibold">
-                        Last Modified
-                      </th>
-                      <th className="px-6 py-4 font-semibold">Status</th>
-                    </tr>
-                  </thead>
+            <div className="p-5">
+              {loading ? (
+                <EmptyState message="Loading files..." />
+              ) : filteredFiles.length === 0 ? (
+                <EmptyState message="No files uploaded yet." />
+              ) : (
+                <div className="space-y-3">
+                  {filteredFiles.slice(0, 6).map((file) => (
+                    <div
+                      key={file.id}
+                      className="
+                        flex flex-col gap-4
+                        rounded-2xl
+                        border border-slate-200
+                        bg-white/80
+                        p-4
+                        backdrop-blur-sm
+                        transition-all duration-300
+                        hover:border-emerald-200
+                        hover:shadow-md
 
-                  <tbody>
-                    {filteredFiles.slice(0, 8).map((file) => (
-                      <tr
-                        key={file.id}
-                        className="border-b border-slate-100 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/50"
-                      >
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-300">
-                              {file.type === "folder" ? (
-                                <Folder className="h-5 w-5" />
-                              ) : (
-                                <Archive className="h-5 w-5" />
-                              )}
-                            </div>
+                        dark:border-slate-600
+                        dark:bg-slate-800/50
+                        dark:hover:border-emerald-500/30
 
-                            <span className="font-semibold text-slate-800 dark:text-slate-100">
-                              {file.name}
-                            </span>
+                        sm:flex-row
+                        sm:items-center
+                        sm:justify-between
+                      "
+                    >
+                      {/* LEFT */}
+                      <div className="flex min-w-0 items-center gap-4">
+                        
+                        {/* ICON */}
+                        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-500">
+                          {file.type === "folder" ? (
+                            <Folder className="h-5 w-5" />
+                          ) : (
+                            <Archive className="h-5 w-5" />
+                          )}
+                        </div>
+
+                        {/* CONTENT */}
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate font-semibold text-slate-900 dark:text-slate-100">
+                            {file.name}
+                          </p>
+
+                          <div className="mt-3 flex flex-wrap items-center gap-2">
+
+                            <Lock className="h-3.5 w-3.5 text-slate-400" />
+                            <p>Access Policy: </p>
+
+                            {file.policy?.split(",")
+                                .map(p => p.trim())
+                                .filter(Boolean)
+                                .length === 1 &&
+                              file.policy?.trim().toLowerCase().startsWith("id") ? (
+                              <span className="
+                                  inline-flex items-center
+                                  rounded-full
+                                  border border-emerald-500/20
+                                  bg-emerald-500/10
+                                  px-2.5 py-1
+                                  text-[11px]
+                                  font-semibold
+                                  text-emerald-600
+                                  dark:text-emerald-300
+                              ">
+                                Private Share
+                              </span>
+                            ) : (
+                              file.policy
+                                .split(",")
+                                .map((tag) => tag.trim())
+                                .filter(Boolean)
+                                .map((tag, index) => (
+                                  <span
+                                    key={`${tag}-${index}`}
+                                    className="
+                                      inline-flex items-center
+                                      rounded-full
+                                      border border-emerald-500/20
+                                      bg-emerald-500/10
+                                      px-2.5 py-1
+                                      text-[11px]
+                                      font-semibold
+                                      text-emerald-600
+                                      dark:text-emerald-300
+                                    "
+                                  >
+                                    {tag}
+                                  </span>
+                                ))
+                            )}
                           </div>
-                        </td>
+                        </div>
+                      </div>
 
-                        <td className="max-w-[280px] px-6 py-4">
-                          <div className="flex items-center gap-2">
-                            <Lock className="h-4 w-4 shrink-0 text-slate-400" />
-                            <span
-                              className="truncate text-slate-500 dark:text-slate-400"
-                              title={file.policy}
-                            >
-                              {file.policy}
-                            </span>
-                          </div>
-                        </td>
-
-                        <td className="px-6 py-4 text-slate-500 dark:text-slate-400">
-                          {file.owner}
-                        </td>
-
-                        <td className="px-6 py-4 text-slate-500 dark:text-slate-400">
-                          {file.lastModified}
-                        </td>
-
-                        <td className="px-6 py-4">
-                          <AccessBadge label={file.accessLabel} />
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+                    </div>
+                        ))}
+                </div>
+              )}
+            </div>
           </div>
 
-          <div className="space-y-8">
-            {/* My Attributes */}
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-              <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-                My ABE Attributes
-              </h2>
+          {/* Sidebar */}
+          <div className="space-y-6">
 
-              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                Data from GET /abe/my-attributes
-              </p>
-
-              <div className="mt-5 flex flex-wrap gap-2">
-                {loading ? (
-                  <span className="text-sm text-slate-500 dark:text-slate-400">
-                    Loading...
-                  </span>
-                ) : myAttributes.length > 0 ? (
-                  myAttributes.map((attr) => (
-                    <span
-                      key={attr}
-                      className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300"
-                    >
-                      {attr}
-                    </span>
-                  ))
-                ) : (
-                  <span className="text-sm text-slate-500 dark:text-slate-400">
-                    No attributes assigned yet.
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* Admin User Management */}
+            {/* Admin */}
             {isAdmin && (
-              <div className="rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5 dark:border-slate-800">
+              <div className="xl:col-span-1 rounded-3xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-800">
+                <div className="flex w-full items-center justify-between border-b border-slate-200 px-6 py-5 dark:border-slate-800">
                   <div>
-                    <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                    <h2 className="text-xl font-bold">
                       User Management
                     </h2>
 
                     <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                      Data from GET /abe/admin/users
+                      Users and their attributes
                     </p>
                   </div>
 
-                  <button
-                    onClick={() =>
-                      navigate(userRole === "ADMIN" ? "/admin" : "/sub_admin")
-                    }
-                    className="text-sm font-semibold text-emerald-600 hover:text-emerald-700 dark:text-emerald-300"
-                  >
-                    Manage
-                  </button>
+
                 </div>
 
-                {loading ? (
-                  <EmptyState message="Loading users..." />
-                ) : users.length === 0 ? (
-                  <EmptyState message="No users returned from backend." />
-                ) : (
-                  <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {users.slice(0, 5).map((user) => {
-                      const id = user.id ?? user.userId;
-                      const userAttributes = cleanAttributes(user.attributes);
+                <div className="space-y-3 p-4">
+                  {users.slice(0, 4).map((user) => {
+                    const id = user.id ?? user.userId;
+                    const userAttributes = cleanAttributes(user.attributes);
 
-                      return (
-                        <div key={id ?? user.email} className="px-6 py-4">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <p className="truncate font-semibold text-slate-900 dark:text-white">
-                                {user.username || "Unnamed User"}
-                              </p>
+                    return (
+                      <div
+                        key={id ?? user.email}
+                        className="
+                          rounded-2xl
+                          border border-slate-200
+                          bg-slate-50/80
+                          p-4
+                          transition-all duration-300
+                          hover:border-emerald-200
+                          hover:bg-white
+                          hover:shadow-sm
 
-                              <p className="truncate text-sm text-slate-500 dark:text-slate-400">
-                                {user.email || "No email"}
-                              </p>
-                            </div>
+                          dark:border-slate-700
+                          dark:bg-slate-800/50
+                          dark:hover:border-emerald-500/20
+                        "
+                      >
+                        {/* TOP */}
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="truncate font-semibold text-slate-900 dark:text-slate-100">
+                              {user.username || "Unnamed User"}
+                            </p>
 
-                            <span
-                              className={`shrink-0 rounded-full border px-2.5 py-1 text-xs font-semibold ${roleBadgeClass(
-                                user.role
-                              )}`}
-                            >
-                              {formatRole(user.role)}
-                            </span>
+                            <p className="truncate text-sm text-slate-500 dark:text-slate-400">
+                              {user.email}
+                            </p>
                           </div>
 
-                          <div className="mt-3 flex flex-wrap gap-2">
-                            {userAttributes.length > 0 ? (
-                              userAttributes.slice(0, 4).map((attr) => (
-                                <span
-                                  key={attr}
-                                  className="rounded-full bg-slate-100 px-2.5 py-1 text-xs text-slate-600 dark:bg-slate-800 dark:text-slate-300"
-                                >
-                                  {attr}
-                                </span>
-                              ))
-                            ) : (
-                              <span className="text-xs italic text-slate-400">
-                                No attributes
-                              </span>
-                            )}
-                          </div>
+                          <span
+                            className={`
+                              shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-semibold
+                              ${roleBadgeClass(user.role)}
+                            `}
+                          >
+                            {formatRole(user.role)}
+                          </span>
                         </div>
-                      );
-                    })}
+
+                        {/* ATTRIBUTES */}
+                        <div className="mt-4 flex flex-wrap gap-2">
+                          {userAttributes.length > 0 ? (
+                            userAttributes.slice(0, 3).map((attr) => (
+                              <span
+                                key={attr}
+                                className="
+                                  inline-flex items-center
+                                  rounded-full
+                                  bg-emerald-500/10
+                                  px-2.5 py-1
+                                  text-[11px]
+                                  font-medium
+                                  text-emerald-600
+                                  dark:text-emerald-300
+                                "
+                              >
+                                {attr}
+                              </span>
+                            ))
+                          ) : (
+                            <span className="text-xs italic text-slate-400">
+                              No attributes
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                  <div className="border-t border-slate-200 p-4 dark:border-slate-700">
+                    <button
+                      onClick={() =>
+                        navigate(
+                          userRole === "ADMIN"
+                            ? "/admin"
+                            : "/sub_admin"
+                        )
+                      }
+                      className="
+                        inline-flex w-full items-center justify-center gap-2
+                        rounded-2xl
+                        bg-emerald-500
+                        px-4 py-3
+                        text-sm font-semibold text-white
+                        transition-all duration-300
+
+                        hover:bg-emerald-600
+                        hover:shadow-lg hover:shadow-emerald-500/20
+
+                        active:scale-[0.98]
+                      "
+                    >
+                      Manage Users
+                    </button>
                   </div>
-                )}
-              </div>
+                </div>
             )}
           </div>
         </section>
