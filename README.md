@@ -43,8 +43,8 @@ The system follows a frontend-backend architecture:
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/xiaomizhoujiayu-wq/SecureShare-web.git
-cd SecureShare-web
+git clone https://github.com/xiaomizhoujiayu-wq/SecureShare.git
+cd SecureShare
 ```
 
 ### 2. Install Dependencies
@@ -101,13 +101,13 @@ You can containerize the application using the provided `Dockerfile`.
 1. **Build the image**:
    ```bash
    # Provide your backend URL during build
-   podman build --build-arg VITE_API_BASE_URL=http://your-server-ip:8080 -t secureshare-web .
+   podman build --build-arg VITE_API_BASE_URL=http://your-server-ip:8080 -t secureshare .
    ```
 
 2. **Run the container**:
    ```bash
    # Map host port 80 to container port 80
-   podman run -d --name secureshare-frontend -p 80:80 secureshare-web
+   podman run -d --name secureshare-frontend -p 80:80 secureshare
    ```
 
 ## License
