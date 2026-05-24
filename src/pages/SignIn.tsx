@@ -1,10 +1,9 @@
-import { useState } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { loginUser } from "@/lib/api";
 import { useAuth } from "@/contexts/AuthContext";
-import { Lock, Mail, ArrowRight } from "lucide-react";
+import { loginUser } from "@/lib/api";
+import { ArrowRight, Lock, Mail } from "lucide-react";
+import { useState } from "react";
 import { navigate } from "wouter/use-browser-location";
 
 export default function SignIn() {
@@ -20,7 +19,7 @@ export default function SignIn() {
       const result = await loginUser(email, password);
       handleLoginSuccess(result, email);
       navigate("/home");
-    } catch (err) {
+    } catch {
       alert("Login failed! Check console.");
       setIsLoading(false);
     }
@@ -45,7 +44,6 @@ export default function SignIn() {
             <h1 className="font-display text-3xl font-bold mb-2 bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
               Sign In
             </h1>
-
           </div>
 
           {/* Form */}
@@ -109,7 +107,10 @@ export default function SignIn() {
 
           {/* Footer Links */}
           <div className="flex items-center justify-between text-xs text-slate-500">
-            <button onClick={()=>navigate("/")} className="hover:text-emerald-400 transition-colors">
+            <button
+              onClick={() => navigate("/")}
+              className="hover:text-emerald-400 transition-colors"
+            >
               Come back to home page
             </button>
           </div>
@@ -117,12 +118,14 @@ export default function SignIn() {
           {/* Sign Up Link */}
           <p className="text-center text-sm text-slate-500 mt-6">
             Don't have an account?{" "}
-            <button onClick={()=>navigate("/signup")} className="text-emerald-400 hover:text-emerald-300 transition-colors font-medium">
+            <button
+              onClick={() => navigate("/signup")}
+              className="text-emerald-400 hover:text-emerald-300 transition-colors font-medium"
+            >
               Sign up
             </button>
           </p>
         </div>
-
       </div>
     </div>
   );

@@ -1,39 +1,70 @@
-import { useLocation} from "wouter";
-import { LogOut, FileText, BarChart3, User, Settings, Folder, Home, Menu, X, Upload } from "lucide-react";
+// ============================================================================
+// DashboardLayout.tsx - Main layout wrapper for authenticated pages
+// ============================================================================
+
+import { SecureShareLogo } from "@/components/logo";
+import ThemeToggle from "@/components/ThemeTogglle";
 import { Button } from "@/components/ui/button";
-import ThemeToggle from "@/components/ThemeTogglle"; 
-import { useState, useEffect } from "react";
-import {SecureShareLogo} from "@/components/logo";
-import { navigate } from "wouter/use-browser-location";
+import {
+  Folder,
+  Home,
+  LogOut,
+  Menu,
+  Settings,
+  Upload,
+  User,
+  X,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { useLocation } from "wouter";
+
+// ----------------------------------------------------------------------------
+// Type definitions
+// ----------------------------------------------------------------------------
+
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
+// ----------------------------------------------------------------------------
+// Main DashboardLayout component
+// ----------------------------------------------------------------------------
 export function DashboardLayout({ children }: DashboardLayoutProps) {
+  // Routing
   const [location, navigate] = useLocation();
+  // Sidebar state (open/closed on mobile)
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  // Display name of the logged-in user
   const [username, setUsername] = useState("User");
-  const userRole = localStorage.getItem('user_role');
+  // Role from localStorage: ADMIN, SUB_ADMIN, or USER
+  const userRole = localStorage.getItem("user_role");
 
+  // Navigation items based on user role
   const navItems = [
     { label: "Home", icon: Home, href: "/home" },
     { label: "Upload & Encrypt", icon: Upload, href: "/dashboard" },
     { label: "File explorer", icon: Folder, href: "/explorer" },
     { label: "Profile", icon: User, href: "/profile" },
   ];
-  if (userRole === 'ADMIN') {
+  // Add Admin panel for ADMIN role
+  if (userRole === "ADMIN") {
     navItems.push({ label: "Admin", icon: Settings, href: "/admin" });
   }
-   if (userRole === 'SUB_ADMIN') {
+  // Add Sub-Admin panel for SUB_ADMIN role
+  if (userRole === "SUB_ADMIN") {
     navItems.push({ label: "Sub_Admin", icon: User, href: "/sub_admin" });
-  } 
-     
-  
+  }
+
+  // Check if a nav item is currently active
   const isActive = (href: string) => location === href;
 
+  // Close sidebar (used on mobile)
   const closeSidebar = () => setSidebarOpen(false);
-  console.log(userRole)
 
+  // Debug log (kept as original)
+  console.log(userRole);
+
+  // Load username from localStorage after mount
   useEffect(() => {
     const storedName = localStorage.getItem("username");
     if (storedName) {
@@ -41,30 +72,32 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     }
   }, []);
 
+  // Generate user initials from full name (max 2 letters)
   const getInitials = (name: string) => {
-      if (!name) return "U";
-      const parts = name.split(" ");
-      if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
-      return name.substring(0, 2).toUpperCase();
-    };
+    if (!name) return "U";
+    const parts = name.split(" ");
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+    return name.substring(0, 2).toUpperCase();
+  };
 
-// 4. sign out
+  // Logout handler - clear all localStorage and redirect to sign-in page
   const handleLogout = () => {
-
     localStorage.removeItem("auth_token");
     localStorage.removeItem("user_attributes");
     localStorage.removeItem("username");
     localStorage.removeItem("user_role");
     localStorage.removeItem("user_id");
 
-    //
-    navigate("/"); 
-  };   
+    // Redirect to home/signin
+    navigate("/");
+  };
 
+  // --------------------------------------------------------------------------
+  // Render JSX
+  // --------------------------------------------------------------------------
   return (
     <div className="relative flex h-screen bg-slate-100 dark:bg-transparent text-foreground overflow-hidden transition-colors duration-300">
-      
-      {/* Mobile Overlay */}
+      {/* Mobile Overlay - darkens background when sidebar is open on mobile */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 bg-black/50 backdrop-blur-sm z-30 lg:hidden"
@@ -72,13 +105,13 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         />
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar (aside) - collapsible on mobile */}
       <aside
         className={`fixed lg:static top-0 left-0 h-screen w-64 bg-slate-50 dark:bg-gradient-to-b dark:from-slate-900 dark:to-slate-950 border-r border-slate-200 dark:border-slate-700/50 flex flex-col z-40 transition-transform duration-300 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
-        {/* Close Button (Mobile) */}
+        {/* Close Button (visible only on mobile) */}
         <div className="lg:hidden p-4 flex justify-end">
           <button
             onClick={closeSidebar}
@@ -88,21 +121,24 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </button>
         </div>
 
-        {/* Logo Section */}
-        <div className="p-6 border-b border-slate-200 dark:border-slate-700/50 cursor-pointer" onClick={() => navigate("/dashboard")}>
+        {/* Logo Section - click navigates to dashboard */}
+        <div
+          className="p-6 border-b border-slate-200 dark:border-slate-700/50 cursor-pointer"
+          onClick={() => navigate("/dashboard")}
+        >
           <div className="flex items-center gap-3">
-              <SecureShareLogo className="w-9 h-9 drop-shadow-sm"/>
+            <SecureShareLogo className="w-9 h-9 drop-shadow-sm" />
             <div>
-              {/* title*/}
+              {/* Brand title */}
               <h1 className="font-display text-lg font-bold text-slate-900 dark:text-white">
-              <span className="font-extrabold gradient-text">Secure</span>
-              <span className="font-light opacity-90 ">Share</span>
+                <span className="font-extrabold gradient-text">Secure</span>
+                <span className="font-light opacity-90 ">Share</span>
               </h1>
             </div>
           </div>
         </div>
 
-        {/* Navigation */}
+        {/* Navigation Menu */}
         <nav className="flex-1 px-4 py-6 overflow-y-auto">
           <div className="space-y-2">
             {navItems.map((item) => {
@@ -129,18 +165,24 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
         </nav>
 
-        {/* User Profile Section */}
+        {/* User Profile Section (bottom of sidebar) */}
         <div className="p-4 border-t border-slate-200 dark:border-slate-700/50 space-y-3">
           <div className="bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-lg p-4 shadow-sm dark:shadow-none">
             <div className="flex items-center gap-3 mb-4">
+              {/* User avatar with initials */}
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-cyan-500 flex items-center justify-center text-white font-bold flex-shrink-0 tracking-widest shadow-inner">
                 {getInitials(username)}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm truncate text-slate-900 dark:text-white">{username}</p>
-                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{userRole || 'User'}</p>
+                <p className="font-semibold text-sm truncate text-slate-900 dark:text-white">
+                  {username}
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                  {userRole || "User"}
+                </p>
               </div>
             </div>
+            {/* Settings button (currently not functional, kept as original) */}
             <Button
               variant="ghost"
               size="sm"
@@ -150,7 +192,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               Settings
             </Button>
           </div>
-          
+
+          {/* Sign Out button */}
           <Button
             onClick={handleLogout}
             variant="outline"
@@ -162,28 +205,27 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           </Button>
         </div>
       </aside>
-      
-      {/* Main Content */}
-      <main className="relative z-10 flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-slate-900 transition-colors duration-300 dark:bg-[radial-gradient(circle_at_50%_0%,_rgba(16,185,129,0.05)_0%,_transparent_50%),_radial-gradient(circle_at_0%_0%,_rgba(59,130,246,0.03)_0%,_transparent_30%)]" >
-        
-        {/* top navigation */}
+
+      {/* Main Content Area */}
+      <main className="relative z-10 flex-1 flex flex-col min-w-0 bg-slate-50 dark:bg-slate-900 transition-colors duration-300 dark:bg-[radial-gradient(circle_at_50%_0%,_rgba(16,185,129,0.05)_0%,_transparent_50%),_radial-gradient(circle_at_0%_0%,_rgba(59,130,246,0.03)_0%,_transparent_30%)]">
+        {/* Top Header with actions */}
         <header className="sticky top-0 z-20 flex h-20 w-full items-center justify-between border-b border-slate-200 bg-white/80 dark:bg-slate-900 px-4 backdrop-blur-xl dark:border-slate-800 dark:bg-[#0B0F19]/80 lg:px-8">
-          
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4"></div>
 
-          </div>
-
-          {/* dashboard logo */}
+          {/* Right side header controls */}
           <div className="flex items-center gap-3">
+            {/* Theme toggle (dark/light mode) */}
             <ThemeToggle />
-            <button 
-              onClick={() => navigate("/home")} 
+            {/* Home button */}
+            <button
+              onClick={() => navigate("/home")}
               className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-500 text-white shadow-sm transition-colors hover:bg-emerald-600"
               title="Go Home"
             >
               <Home className="w-5 h-5" />
             </button>
-            
+
+            {/* Mobile menu button (hamburger) */}
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
               className="ml-2 rounded-lg p-2 text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800/50 lg:hidden"
@@ -192,8 +234,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </button>
           </div>
         </header>
-        
-        {/* Page Content */}
+
+        {/* Page Content - renders children passed to layout */}
         <div className="flex-1 overflow-y-auto overflow-x-hidden">
           <div className="mx-auto max-w-[1600px] p-4 sm:p-6 lg:p-8">
             {children}
