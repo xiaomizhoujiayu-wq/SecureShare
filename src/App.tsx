@@ -16,19 +16,50 @@ import SubAdmin from "@/pages/Sub_admin";
 
 import Homepage from "@/pages/homepage";
 
+import { useLocation } from "wouter";
+import { useEffect } from "react";
+
+const ProtectedRoute = ({ component: Component }: { component: any }) => {
+  const [, setLocation] = useLocation();
+  const token = localStorage.getItem("auth_token");
+
+  useEffect(() => {
+    if (!token) {
+      setLocation("/signin");
+    }
+  }, [token, setLocation]);
+
+  return token ? <Component /> : null;
+};
+
 function Router() {
   return (
     <Switch>
       <Route path={"/"} component={Home} />
       <Route path={"/signin"} component={SignIn} />
       <Route path={"/signup"} component={SignUp} />
-      <Route path={"/dashboard"} component={Dashboard} />
-      <Route path={"/explorer"} component={FileExplorer} />
-      <Route path={"/profile"} component={Profile} />
-      <Route path={"/admin"} component={admin} />
-      <Route path={"/sub_admin"} component={SubAdmin} />
+      
+      {/* Protected Routes */}
+      <Route path={"/dashboard"}>
+        <ProtectedRoute component={Dashboard} />
+      </Route>
+      <Route path={"/explorer"}>
+        <ProtectedRoute component={FileExplorer} />
+      </Route>
+      <Route path={"/profile"}>
+        <ProtectedRoute component={Profile} />
+      </Route>
+      <Route path={"/admin"}>
+        <ProtectedRoute component={admin} />
+      </Route>
+      <Route path={"/sub_admin"}>
+        <ProtectedRoute component={SubAdmin} />
+      </Route>
+      <Route path={"/home"}>
+        <ProtectedRoute component={Homepage} />
+      </Route>
+
       <Route path={"/404"} component={NotFound} />
-      <Route path={"/home"} component={Homepage} />
       {/* Final fallback route */}
       <Route component={NotFound} />
     </Switch>
