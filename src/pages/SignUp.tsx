@@ -1,9 +1,8 @@
-import { useState } from "react";
-import { useLocation } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mail, Lock, User, ArrowRight, CheckCircle } from "lucide-react";
+import { ArrowRight, Lock, Mail, User } from "lucide-react";
+import { useState } from "react";
+import { useLocation } from "wouter";
 import { navigate } from "wouter/use-browser-location";
 
 export default function SignUp() {
@@ -30,10 +29,10 @@ export default function SignUp() {
     };
 
     try {
-      const res = await fetch('http://localhost:8080/abe/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+      const res = await fetch("http://localhost:8080/abe/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
 
       if (res.ok) {
@@ -77,22 +76,30 @@ export default function SignUp() {
             {/* Name Fields */}
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2 block">First Name</label>
+                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2 block">
+                  First Name
+                </label>
                 <Input
                   required
                   placeholder=""
                   value={formData.fname}
-                  onChange={(e) => setFormData({ ...formData, fname: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, fname: e.target.value })
+                  }
                   className="bg-slate-800/50 border-slate-700/50 text-white placeholder-slate-500 focus:border-emerald-500/50 focus:bg-slate-800/80 transition-all rounded-lg h-10"
                 />
               </div>
               <div>
-                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2 block">Last Name</label>
+                <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2 block">
+                  Last Name
+                </label>
                 <Input
                   required
                   placeholder=""
                   value={formData.lname}
-                  onChange={(e) => setFormData({ ...formData, lname: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, lname: e.target.value })
+                  }
                   className="bg-slate-800/50 border-slate-700/50 text-white placeholder-slate-500 focus:border-emerald-500/50 focus:bg-slate-800/80 transition-all rounded-lg h-10"
                 />
               </div>
@@ -100,7 +107,9 @@ export default function SignUp() {
 
             {/* Email Field */}
             <div>
-              <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2 block">Email Address</label>
+              <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2 block">
+                Email Address
+              </label>
               <div className="relative group">
                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500 group-focus-within:text-emerald-400 transition-colors">
                   <Mail className="w-5 h-5" />
@@ -110,7 +119,9 @@ export default function SignUp() {
                   required
                   placeholder=""
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
                   className="pl-10 bg-slate-800/50 border-slate-700/50 text-white placeholder-slate-500 focus:border-emerald-500/50 focus:bg-slate-800/80 transition-all rounded-lg h-11"
                 />
               </div>
@@ -118,7 +129,9 @@ export default function SignUp() {
 
             {/* Password Field */}
             <div>
-              <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2 block">Password</label>
+              <label className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2 block">
+                Password
+              </label>
               <div className="relative group">
                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500 group-focus-within:text-emerald-400 transition-colors">
                   <Lock className="w-5 h-5" />
@@ -159,7 +172,9 @@ export default function SignUp() {
               <div className="w-full border-t border-slate-700/50"></div>
             </div>
             <div className="relative flex justify-center text-xs">
-              <span className="px-2 bg-slate-900 text-slate-500">Already have an account?</span>
+              <span className="px-2 bg-slate-900 text-slate-500">
+                Already have an account?
+              </span>
             </div>
           </div>
 
@@ -170,12 +185,15 @@ export default function SignUp() {
           >
             Sign In Instead
           </button>
-            {/* Footer Links */}
-            <div className="text-sm text-slate-500 mt-6">
-            <button onClick={()=>navigate("/")} className="hover:text-emerald-400 transition-colors">
-                Come back to home page
+          {/* Footer Links */}
+          <div className="text-sm text-slate-500 mt-6">
+            <button
+              onClick={() => navigate("/")}
+              className="hover:text-emerald-400 transition-colors"
+            >
+              Come back to home page
             </button>
-            </div>
+          </div>
         </div>
       </div>
     </div>

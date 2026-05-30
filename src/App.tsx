@@ -16,8 +16,6 @@ import SubAdmin from "@/pages/Sub_admin";
 
 import Homepage from "@/pages/homepage";
 
-
-
 function Router() {
   return (
     <Switch>
@@ -37,15 +35,11 @@ function Router() {
   );
 }
 
-
-
 function App() {
   return (
     <ErrorBoundary>
       <AuthProvider>
-        <ThemeProvider
-          switchable={true} defaultTheme="dark"
-        >
+        <ThemeProvider switchable={true} defaultTheme="dark">
           <TooltipProvider>
             <Toaster />
             <Router />
