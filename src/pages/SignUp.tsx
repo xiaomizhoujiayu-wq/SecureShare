@@ -29,7 +29,8 @@ export default function SignUp() {
     };
 
     try {
-      const res = await fetch("http://localhost:8080/abe/register", {
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || "";
+      const res = await fetch(`${baseUrl}/abe/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
