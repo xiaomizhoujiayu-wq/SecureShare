@@ -88,8 +88,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     localStorage.removeItem("user_role");
     localStorage.removeItem("user_id");
 
-    // Redirect to home/signin
-    navigate("/");
+    // Force a full page reload to clear all React state and history
+    window.location.replace("/");
   };
 
   // --------------------------------------------------------------------------
