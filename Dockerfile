@@ -1,5 +1,6 @@
 # Build stage
-FROM node:22-alpine AS build
+FROM node:lts-alpine3.23 AS build
+RUN apk update && apk upgrade --no-cache
 
 WORKDIR /app
 
@@ -21,6 +22,7 @@ RUN npm run build
 
 # Production stage
 FROM nginx:alpine
+RUN apk update && apk upgrade --no-cache
 
 # Copy build artifacts to nginx public folder
 COPY --from=build /app/dist /usr/share/nginx/html
