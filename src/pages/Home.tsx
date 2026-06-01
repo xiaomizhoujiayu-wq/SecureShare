@@ -19,6 +19,12 @@ import ThemeToggle from "@/components/ThemeTogglle";
 import { SecureShareLogo } from "@/components/logo";
 import { Button } from "@/components/ui/button";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   ArrowRight,
   Building,
   CheckCircle,
@@ -117,19 +123,41 @@ export default function Home() {
               Ready to share files safely
               <ArrowRight className="ml-2 w-4 h-4 sm:w-5 sm:h-5" />
             </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              className="border-emerald-300 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 px-6 sm:px-8 py-4 sm:py-6 text-sm sm:text-lg rounded-xl transition-all hover:scale-105 active:scale-95"
-              onClick={() =>
-                window.open(
-                  "https://github.com/xiaomizhoujiayu-wq/SecureShare-web",
-                  "_blank",
-                )
-              }
-            >
-              Start on Github
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="border-emerald-300 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 px-6 sm:px-8 py-4 sm:py-6 text-sm sm:text-lg rounded-xl transition-all hover:scale-105 active:scale-95"
+                >
+                  Start on Github
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="center" className="w-48 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200 dark:border-slate-800">
+                <DropdownMenuItem
+                  className="cursor-pointer text-slate-700 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 focus:bg-emerald-50 dark:focus:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400 focus:text-emerald-600 dark:focus:text-emerald-400 font-medium py-2 rounded-lg"
+                  onClick={() =>
+                    window.open(
+                      "https://github.com/xiaomizhoujiayu-wq/SecureShare",
+                      "_blank",
+                    )
+                  }
+                >
+                  Frontend
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="cursor-pointer text-slate-700 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 focus:bg-emerald-50 dark:focus:bg-emerald-500/10 hover:text-emerald-600 dark:hover:text-emerald-400 focus:text-emerald-600 dark:focus:text-emerald-400 font-medium py-2 rounded-lg"
+                  onClick={() =>
+                    window.open(
+                      "https://github.com/ACDD233/ABE-Cloud-Storage",
+                      "_blank",
+                    )
+                  }
+                >
+                  Backend
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </section>
