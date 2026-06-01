@@ -42,10 +42,10 @@ type BackendUser = {
   attributes?: string;
 };
 
-const getToken = () => localStorage.getItem("auth_token");
-const getUsername = () => localStorage.getItem("username") || "User";
-const getUserRole = () => localStorage.getItem("user_role") || "USER";
-const getUserId = () => localStorage.getItem("user_id") || "";
+const getToken = () => sessionStorage.getItem("auth_token");
+const getUsername = () => sessionStorage.getItem("username") || "User";
+const getUserRole = () => sessionStorage.getItem("user_role") || "USER";
+const getUserId = () => sessionStorage.getItem("user_id") || "";
 
 function parseAttributes(raw?: string | null) {
   if (!raw) return [];

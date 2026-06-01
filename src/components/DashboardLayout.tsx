@@ -52,8 +52,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   // Display name of the logged-in user
   const [username, setUsername] = useState("User");
-  // Role from localStorage: ADMIN, SUB_ADMIN, or USER
-  const userRole = localStorage.getItem("user_role");
+  // Role from sessionStorage: ADMIN, SUB_ADMIN, or USER
+  const userRole = sessionStorage.getItem("user_role");
 
   // Navigation items based on user role
   const navItems = [
@@ -80,9 +80,9 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   // Debug log (kept as original)
   console.log(userRole);
 
-  // Load username from localStorage after mount
+  // Load username from sessionStorage after mount
   useEffect(() => {
-    const storedName = localStorage.getItem("username");
+    const storedName = sessionStorage.getItem("username");
     if (storedName) {
       setTimeout(() => setUsername(storedName), 0);
     }
@@ -96,13 +96,13 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     return name.substring(0, 2).toUpperCase();
   };
 
-  // Logout handler - clear all localStorage and redirect to sign-in page
+  // Logout handler - clear all sessionStorage and redirect to sign-in page
   const handleLogout = () => {
-    localStorage.removeItem("auth_token");
-    localStorage.removeItem("user_attributes");
-    localStorage.removeItem("username");
-    localStorage.removeItem("user_role");
-    localStorage.removeItem("user_id");
+    sessionStorage.removeItem("auth_token");
+    sessionStorage.removeItem("user_attributes");
+    sessionStorage.removeItem("username");
+    sessionStorage.removeItem("user_role");
+    sessionStorage.removeItem("user_id");
 
     // Force a full page reload to clear all React state and history
     window.location.replace("/");

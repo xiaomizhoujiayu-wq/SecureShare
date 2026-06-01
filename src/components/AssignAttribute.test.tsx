@@ -61,7 +61,7 @@ describe("AdminPanel Component", () => {
     // Clear all previous mocks before every test
     vi.clearAllMocks();
 
-    // Mock auth token in localStorage
+    // Mock auth token in sessionStorage
     Storage.prototype.getItem = vi.fn(() => "fake-auth-token");
 
     // Mock window.location

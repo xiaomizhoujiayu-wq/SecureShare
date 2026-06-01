@@ -68,7 +68,7 @@ export function AdminPanel() {
     password: "",
   });
 
-  const token = localStorage.getItem("auth_token");
+  const token = sessionStorage.getItem("auth_token");
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);

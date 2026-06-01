@@ -30,19 +30,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const handleLoginSuccess = (result: any, email: string) => {
     // --- get result ---
-    localStorage.setItem("auth_token", result.token);
+    sessionStorage.setItem("auth_token", result.token);
 
     //
     let rawAttrs = result.attributes || [];
     if (typeof rawAttrs === "string") {
       rawAttrs = rawAttrs.includes(",") ? rawAttrs.split(",") : [rawAttrs];
     }
-    localStorage.setItem("user_attributes", JSON.stringify(rawAttrs));
+    sessionStorage.setItem("user_attributes", JSON.stringify(rawAttrs));
 
     //
-    localStorage.setItem("username", result.username);
-    localStorage.setItem("user_role", result.role);
-    localStorage.setItem("user_id", result.id || result.userId);
+    sessionStorage.setItem("username", result.username);
+    sessionStorage.setItem("user_role", result.role);
+    sessionStorage.setItem("user_id", result.id || result.userId);
 
     //
     setUser({ ...result, email });

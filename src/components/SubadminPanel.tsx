@@ -49,7 +49,7 @@ export function SubAdminPanel() {
   const [isSubmitting, setIsSubmitting] = useState(false); // Loading state for async ops
   const [error, setError] = useState<string | null>(null); // Error message to display
 
-  const token = localStorage.getItem("auth_token"); // Auth token for validation
+  const token = sessionStorage.getItem("auth_token"); // Auth token for validation
 
   // --------------------------------------------------------------------------
   // Fetch all users (only accessible to Sub-Admin / Admin)

@@ -39,8 +39,8 @@ interface FileItem {
   policyDetails: string;
 }
 
-// Helper to get current user ID from localStorage
-const getUserId = () => localStorage.getItem("user_id") || "";
+// Helper to get current user ID from sessionStorage
+const getUserId = () => sessionStorage.getItem("user_id") || "";
 
 // ----------------------------------------------------------------------------
 // Reusable table component for displaying files in both sections
